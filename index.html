@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Spikepush</title>
     
-    <!-- Bloque l'indexation par Google pendant le développement -->
-    <meta name="robots" content="noindex, nofollow">
+    <!-- On charge le design global -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="gameCanvas"> </canvas>
-    <script src="client.js"> </script>
+    <canvas id="gameCanvas"></canvas>
+    
+    <!-- On charge le moteur du jeu -->
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>
