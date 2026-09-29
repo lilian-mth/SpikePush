@@ -19,11 +19,12 @@ export function drawGame() {
             drawCell(x, y, "#c4a484"); 
         }
     }
-
+    /*
     if (window.innerHeight > window.innerWidth) {
         ctx.fillStyle = "#a6e3a1";
         ctx.font = "bold 20px Arial";
         ctx.textAlign = "center";
         ctx.fillText("[ Zone Joystick & Boutons ]", window.innerWidth / 2, window.innerHeight - 80);
     }
+    */
 }
