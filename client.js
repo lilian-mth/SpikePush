@@ -63,13 +63,6 @@ function drawGame() {
             drawCell(x, y, "#c4a484"); // Marron clair
         }
     }
-
-    if (window.innerHeight > window.innerWidth) {
-        ctx.fillStyle = "#a6e3a1";
-        ctx.font = "bold 20px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("[ Zone Joystick & Boutons ]", window.innerWidth / 2, window.innerHeight - 80);
-    }
 }
 
 const joystick = {
@@ -124,7 +117,7 @@ function gameLoop(timestamp) {
     drawGame(); // On efface et on dessine la grille (ta fonction existante)
     drawPlayer(); // On dessine le joueur par-dessus
     drawJoystick();
-    
+
     // On rappelle la boucle pour la prochaine frame
     requestAnimationFrame(gameLoop);
 }
