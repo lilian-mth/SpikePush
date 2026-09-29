@@ -1,0 +1,9 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Empêche l'apparition de barres de défilement */
+    background-color: #1e1e2e;
+}
+canvas {
+    display: block; /* Enlève une petite marge blanche fantôme sous le canvas */
+}

@@ -2,44 +2,15 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spikepush - Dev</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spikepush</title>
     
     <!-- Bloque l'indexation par Google pendant le développement -->
     <meta name="robots" content="noindex, nofollow">
-    
-    <style>
-        body {
-            background-color: #1e1e2e;
-            color: #cdd6f4;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-        }
-        h1 {
-            color: #89b4fa;
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-        .status {
-            background-color: #a6e3a1;
-            color: #11111b;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>🚀 Spikepush</h1>
-    <span class="status">Déploiement Automatique Actif</span>
-    <p>Le pipeline GitHub Actions -> Hostinger fonctionne parfaitement.</p>
-    <p>Prêt pour coder la physique et les mécaniques du jeu !</p>
+    <canvas id="gameCanvas"> </canvas>
+    <script src="client.js"> </script>
 </body>
 </html>
