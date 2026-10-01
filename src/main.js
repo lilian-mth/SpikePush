@@ -1,30 +1,17 @@
-// On importe les fichiers autonomes pour qu'ils s'exécutent (clavier et canvas)
-import './core/display.js'; 
-import './core/input.js';   
+// main.js
+import { Game } from './core/game.js';
 
-// On importe les fonctions spécifiques dont on a besoin pour la boucle
-import { drawGame } from './entities/grid.js';
-import { updatePlayer, drawPlayer } from './entities/player.js';
-import { drawJoystick } from './ui/joystick.js';
+// Instanciation de la session de jeu
+const game = new Game();
 
-let lastTime = 0;
+// Lancement automatique au chargement
+game.start();
 
-function gameLoop(timestamp) {
-    if (!lastTime) lastTime = timestamp;
-    const dt = (timestamp - lastTime) / 1000;
-    lastTime = timestamp;
+// Exemple : lier facilement des contrôles extérieurs ou HTML
+// Si la fenêtre perd le focus (onglet en arrière-plan), on peut suspendre le jeu :
+window.addEventListener('blur', () => game.stop());
+window.addEventListener('focus', () => game.start());
 
-    // 1. Mise à jour de la logique
-    updatePlayer(dt);
-
-    // 2. Affichage
-    drawGame();
-    drawPlayer();
-    drawJoystick();
-
-    // 3. Boucle
-    requestAnimationFrame(gameLoop);
-}
-
-// Lancement du jeu
-requestAnimationFrame(gameLoop);
+// Si tu as un bouton HTML dans ta page pour lancer/quitter :
+// document.getElementById('btn-play').addEventListener('click', () => game.start());
+// document.getElementById('btn-pause').addEventListener('click', () => game.stop());

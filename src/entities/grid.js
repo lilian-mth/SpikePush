@@ -1,11 +1,12 @@
-import { ctx, layout } from '../core/display.js';
+import { ctx, gridToPixels, layout } from '../core/display.js';
+
+
 
 function drawCell(gridX, gridY, color) {
-    const pixelX = layout.offsetX + (gridX * layout.cellSize);
-    const pixelY = layout.offsetY + (gridY * layout.cellSize);
+    const pos = gridToPixels(gridX, gridY);
     
     ctx.fillStyle = color;
-    ctx.fillRect(pixelX, pixelY, layout.cellSize - 1, layout.cellSize - 1); 
+    ctx.fillRect(pos.x, pos.y, layout.cellSize - 1, layout.cellSize - 1); 
 }
 
 export function drawGame() {

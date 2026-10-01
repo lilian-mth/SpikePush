@@ -1,55 +1,57 @@
-import { ctx, layout } from '../core/display.js';
-import { keys } from '../core/input.js';
-import { joystick } from '../ui/joystick.js';
+import { keys, keys_2 } from '../core/input.js';
+import { Circle } from './circle.js'; // Import de la forme géométrique pure
 
-const CONFIG = {
-    color: "#2a1b9d",
-    sizeRatio: 0.25, // Prend 25% d'une case
-    baseSpeed: 3
-};
+export class Player {
+    constructor(startX = 2.5, startY = 2.5, id = 2, color = 'red', locked = false) {
+        this.id = id;
+        this.x = startX;
+        this.y = startY;
+        this.speed = 3;
+        this.sizeRatio = 0.25;
+        this.locked = locked;
+        
+        // Composition : on crée la hitbox géométrique
+        // On lui passe la couleur pour le mode Debug
+        this.hitbox = new Circle(this.x, this.y, this.sizeRatio, color);
+    }
 
-export const player = {
-    x: 2.5,
-    y: 2.5,
-    speed: CONFIG.baseSpeed 
-};
+    update(dt) {
+        if (this.locked) return;
+        let dx = 0;
+        let dy = 0;
 
-export function updatePlayer(dt) {
-    let dx = 0;
-    let dy = 0;
-
-    if (joystick.active) {
-        dx = joystick.dx;
-        dy = joystick.dy;
-    } else {
-        if (keys.z) dy -= 1;
-        if (keys.s) dy += 1;
+        // Dans un repère mathématique classique, l'axe Y pointe vers le HAUT.
+        // Les touches sont donc inversées par rapport à un écran classique.
+        
+        if (keys.z) dy += 1;
+        if (keys.s) dy -= 1;
         if (keys.q) dx -= 1;
         if (keys.d) dx += 1;
 
         if (dx !== 0 && dy !== 0) {
-            const length = Math.sqrt(dx * dx + dy * dy); 
+            const length = Math.sqrt(dx * dx + dy * dy);
             dx /= length;
             dy /= length;
         }
+
+        // On applique le déplacement à la position du joueur
+        this.x += dx * this.speed * dt;
+        this.y += dy * this.speed * dt;
+
+        // On transfère l'intention de mouvement à la hitbox avant la physique
+        this.hitbox.x = this.x;
+        this.hitbox.y = this.y;
     }
 
-    player.x += dx * player.speed * dt;
-    player.y += dy * player.speed * dt;
+    syncFromPhysics() {
+        // Après la résolution des collisions, la hitbox aura peut-être été repoussée.
+        // Le joueur s'aligne sur la réalité physique.
+        this.x = this.hitbox.x;
+        this.y = this.hitbox.y;
+    }
 
-    if (player.x < 0) player.x = 0;
-    if (player.x > layout.gridSize) player.x = layout.gridSize;
-    if (player.y < 0) player.y = 0;
-    if (player.y > layout.gridSize) player.y = layout.gridSize;
-}
-
-export function drawPlayer() {
-    const pixelX = layout.offsetX + (player.x * layout.cellSize);
-    const pixelY = layout.offsetY + (player.y * layout.cellSize);
-    const radius = layout.cellSize * 0.25;
-
-    ctx.fillStyle = "#3032ae"; 
-    ctx.beginPath();
-    ctx.arc(pixelX, pixelY, radius, 0, Math.PI * 2);
-    ctx.fill();
+    draw(camera) {
+        // En attendant d'avoir des sprites, on délègue le rendu visuel à la hitbox
+        this.hitbox.draw(camera);
+    }
 }
