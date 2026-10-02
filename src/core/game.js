@@ -12,74 +12,68 @@ import {
 } from './physics.js';
 import { WorldWarning } from '../entities/warning.js';
 
+export const GAME_CONFIG = {
+    SPIKE_SPEED: 15,
+    WARNING_MAX_RADIUS: 0.5,
+    SPIKE_COOLDOWN_RETRACT: 0.5,
+    SPIKE_COOLDOWN_ATTACK: 3,
+    WIDTH: 4,  // Coquille corrigée ici (anciennement WIDHT)
+    HEIGHT: 4,
+};
+
 export class Game {
     constructor() {
         this.camera = new Camera(2, 2, 6);
         this.player1 = new Player(3.5, 3.5, '#ff0044');
+        
+        const w = GAME_CONFIG.WIDTH;
+        const h = GAME_CONFIG.HEIGHT;
+
+        // --- 1. Murs extérieurs dynamiques ---
         this.boundaries = [
-            new Rectangle(2, -0.5, 6, 1, 'black'),
-            new Rectangle(2, 4.5, 6, 1, 'black'),
-            new Rectangle(-0.5, 2, 1, 4, 'black'),
-            new Rectangle(4.5, 2, 1, 4, 'black'),
+            new Rectangle(w / 2, -0.5, w + 2, 1, 'black'),      // Haut
+            new Rectangle(w / 2, h + 0.5, w + 2, 1, 'black'),   // Bas
+            new Rectangle(-0.5, h / 2, 1, h, 'black'),          // Gauche
+            new Rectangle(w + 0.5, h / 2, 1, h, 'black'),       // Droite
         ];
+
+        // --- 2. Murs intérieurs inchangés ---
         this.interiorWalls = [
             new Rectangle(0.5, 3.5, 1, 1, 'gray'),
             new Rectangle(2.5, 1.5, 1, 1, 'gray')
         ];
-        this.spikes = {
-            'UP' : [
-                new Spike(0.5, 6, 1, 4, 0, -1, 10),
-                new Spike(1.5, 6, 1, 4, 0, -1, 10),
-                new Spike(2.5, 6, 1, 4, 0, -1, 10),
-                new Spike(3.5, 6, 1, 4, 0, -1, 10),
-            ],
-            'DOWN' : [
-                new Spike(0.5, -2, 1, 4, 0, 1, 10),
-                new Spike(1.5, -2, 1, 4, 0, 1, 10),
-                new Spike(2.5, -2, 1, 4, 0, 1, 10),
-                new Spike(3.5, -2, 1, 4, 0, 1, 10),
-            ],
-            'RIGHT' : [
-                new Spike(6, 0.5, 4, 1, -1, 0, 10),
-                new Spike(6, 1.5, 4, 1, -1, 0, 10),
-                new Spike(6, 2.5, 4, 1, -1, 0, 10),
-                new Spike(6, 3.5, 4, 1, -1, 0, 10),
-            ],
-            'LEFT' : [
-                new Spike(-2, 0.5, 4, 1, 1, 0, 10),
-                new Spike(-2, 1.5, 4, 1, 1, 0, 10),
-                new Spike(-2, 2.5, 4, 1, 1, 0, 10),
-                new Spike(-2, 3.5, 4, 1, 1, 0, 10),
-            ]
-        };
-        
-        this.warnings = {
-            'UP' : [
-                new WorldWarning(0.5, 4.5, 0.7, 'red'),
-                new WorldWarning(1.5, 4.5, 0.7, 'red'),
-                new WorldWarning(2.5, 4.5, 0.7, 'red'),
-                new WorldWarning(3.5, 4.5, 0.7, 'red'),
-            ],
-            'DOWN' : [
-                new WorldWarning(0.5, -0.5, 0.7, 'red'),
-                new WorldWarning(1.5, -0.5, 0.7, 'red'),
-                new WorldWarning(2.5, -0.5, 0.7, 'red'),
-                new WorldWarning(3.5, -0.5, 0.7, 'red'),
-            ],
-            'RIGHT': [
-                new WorldWarning(4.5, 0.5, 0.7, 'red'),
-                new WorldWarning(4.5, 1.5, 0.7, 'red'),
-                new WorldWarning(4.5, 2.5, 0.7, 'red'),
-                new WorldWarning(4.5, 3.5, 0.7, 'red'),
-            ],
-            'LEFT': [
-                new WorldWarning(-0.5, 0.5, 0.7, 'red'),
-                new WorldWarning(-0.5, 1.5, 0.7, 'red'),
-                new WorldWarning(-0.5, 2.5, 0.7, 'red'),
-                new WorldWarning(-0.5, 3.5, 0.7, 'red'),
-            ]
-        };
 
+        // --- 3. Initialisation des objets ---
+        this.spikes = { 'UP': [], 'DOWN': [], 'RIGHT': [], 'LEFT': [] };
+        this.warnings = { 'UP': [], 'DOWN': [], 'RIGHT': [], 'LEFT': [] };
+
+        // --- 4. Génération dynamique des pics verticaux (UP et DOWN) ---
+        for (let i = 0; i < w; i++) {
+            const x = i + 0.5; // Centre de la case (0.5, 1.5, etc.)
+
+            // Pics UP (arrivent d'en bas et montent)
+            this.spikes['UP'].push(new Spike(x, h + 2, 1, h, 0, -1, GAME_CONFIG.SPIKE_SPEED));
+            this.warnings['UP'].push(new WorldWarning(x, h + 0.5, GAME_CONFIG.WARNING_MAX_RADIUS, 'red'));
+
+            // Pics DOWN (arrivent d'en haut et descendent)
+            this.spikes['DOWN'].push(new Spike(x, -2, 1, h, 0, 1, GAME_CONFIG.SPIKE_SPEED));
+            this.warnings['DOWN'].push(new WorldWarning(x, -0.5, GAME_CONFIG.WARNING_MAX_RADIUS, 'red'));
+        }
+
+        // --- 5. Génération dynamique des pics horizontaux (LEFT et RIGHT) ---
+        for (let i = 0; i < h; i++) {
+            const y = i + 0.5; // Centre de la case
+
+            // Pics RIGHT (arrivent de la droite vers la gauche)
+            this.spikes['RIGHT'].push(new Spike(w + 2, y, w, 1, -1, 0, GAME_CONFIG.SPIKE_SPEED));
+            this.warnings['RIGHT'].push(new WorldWarning(w + 0.5, y, GAME_CONFIG.WARNING_MAX_RADIUS, 'red'));
+
+            // Pics LEFT (arrivent de la gauche vers la droite)
+            this.spikes['LEFT'].push(new Spike(-2, y, w, 1, 1, 0, GAME_CONFIG.SPIKE_SPEED));
+            this.warnings['LEFT'].push(new WorldWarning(-0.5, y, GAME_CONFIG.WARNING_MAX_RADIUS, 'red'));
+        }
+
+        // --- Variables d'état (inchangées) ---
         this.isRunning = false;
         this.lastTime = 0;
         this.animationFrameId = null;
@@ -87,8 +81,10 @@ export class Game {
         this.waveTimer = 3.0; 
         this.warningTime = 2;
         this.side = null;
-        this.isWarningActive = false; // Permet de ne tirer au sort le côté qu'une seule fois
+        this.isWarningActive = false;
     }
+
+    // ... le reste de tes méthodes (start, stop, loop, update, render) reste 100% identique !
 
     start() {
         if (this.isRunning) return;
@@ -125,7 +121,7 @@ export class Game {
         }
 
         // Respawn du joueur au tout début du cycle
-        if (this.waveState === 'WAITING_ATTACK' && this.waveTimer >= 2.9) {
+        if (this.waveState === 'WAITING_ATTACK' && this.waveTimer >= (GAME_CONFIG.SPIKE_COOLDOWN_ATTACK - 0.1)) {
             if (!this.player1.isAlive) {
                 this.player1.respawn();
             }
@@ -161,7 +157,7 @@ export class Game {
             // On vérifie uniquement les pics du côté attaquant
             const allStopped = this.spikes[this.side].every(s => s.state === 'IDLE');
             if (allStopped) {
-                this.waveTimer = 3.0;
+                this.waveTimer = GAME_CONFIG.SPIKE_COOLDOWN_RETRACT;
                 this.waveState = 'WAITING_RETRACT';
             }
         }
@@ -177,7 +173,7 @@ export class Game {
         if (this.waveState === 'RETRACTING') {
             const allStopped = this.spikes[this.side].every(s => s.state === 'IDLE');
             if (allStopped) {
-                this.waveTimer = 3.0;
+                this.waveTimer = GAME_CONFIG.SPIKE_COOLDOWN_ATTACK;
                 this.waveState = 'WAITING_ATTACK'; // La boucle recommence !
                 this.side = null;
             }
