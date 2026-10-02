@@ -1,22 +1,36 @@
+
+
+import { Circle } from './circle.js';
 import { keys, keys_2 } from '../core/input.js';
-import { Circle } from './circle.js'; // Import de la forme géométrique pure
 
 export class Player {
-    constructor(startX = 2.5, startY = 2.5, id = 2, color = 'red', locked = false) {
-        this.id = id;
+    constructor(startX, startY, color = 'red') {
+        this.spawnX = startX; // On garde en mémoire sa case de départ
+        this.spawnY = startY;
         this.x = startX;
         this.y = startY;
         this.speed = 3;
-        this.sizeRatio = 0.25;
-        this.locked = locked;
+        this.hitbox = new Circle(this.x, this.y, 0.25, color);
         
-        // Composition : on crée la hitbox géométrique
-        // On lui passe la couleur pour le mode Debug
-        this.hitbox = new Circle(this.x, this.y, this.sizeRatio, color);
+        // Nouvel état
+        this.isAlive = true;
+    }
+
+    die() {
+        if (!this.isAlive) return; // Évite de mourir plusieurs fois par frame
+        this.isAlive = false;
+        console.log(`Joueur éliminé !`);
+    }
+
+    respawn() {
+        this.isAlive = true;
+        this.x = this.spawnX;
+        this.y = this.spawnY;
+        this.hitbox.x = this.x;
+        this.hitbox.y = this.y;
     }
 
     update(dt) {
-        if (this.locked) return;
         let dx = 0;
         let dy = 0;
 
@@ -44,14 +58,13 @@ export class Player {
     }
 
     syncFromPhysics() {
-        // Après la résolution des collisions, la hitbox aura peut-être été repoussée.
-        // Le joueur s'aligne sur la réalité physique.
+        if (!this.isAlive) return;
         this.x = this.hitbox.x;
         this.y = this.hitbox.y;
     }
 
     draw(camera) {
-        // En attendant d'avoir des sprites, on délègue le rendu visuel à la hitbox
+        if (!this.isAlive) return; // Un joueur mort ne s'affiche pas
         this.hitbox.draw(camera);
     }
 }

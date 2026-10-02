@@ -9,14 +9,16 @@ export const screen = {
 };
 
 export function resizeCanvas() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const dpr = window.devicePixelRatio || 1; // Maintien de ta logique de netteté[cite: 1]
+    // clientWidth/clientHeight mesurent la zone interne réellement disponible, sans bordures ni marges
+    const width = document.documentElement.clientWidth;
+    const height = document.documentElement.clientHeight;
+    const dpr = window.devicePixelRatio || 1;
     
-    canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
+    // Le fait d'assigner canvas.width réinitialise automatiquement le ctx.scale accumulé
     canvas.width = width * dpr;
     canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
     
     ctx.scale(dpr, dpr);
 

@@ -1,17 +1,14 @@
-/* style.css */
-
-/* 1. On réinitialise la page pour prendre 100% de l'écran sans marges */
-body {
+body, html {
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Empêche l'apparition de barres de défilement */
-    background-color: #1e1e2e;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* Empêche les comportements tactiles natifs du navigateur (zoom, rafraîchissement) */
-    touch-action: none; 
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Désactive formellement tout scroll résiduel */
+    background-color: #111;
 }
 
-/* 2. On s'assure que le canvas se comporte bien */
 canvas {
-    display: block;
+    display: block; /* Supprime l'espace textuel invisible sous le canvas */
+    width: 100vw;
+    height: 100vh;
 }

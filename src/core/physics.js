@@ -80,23 +80,66 @@ export function resolveCircleRectangle(circle, rect) {
     return false;
 }
 
-
 // core/physics.js
 
-export function resolveWorld(players, walls) {
-    // 1. Résolution Joueurs vs Murs
-    for (const player of players) {
-        for (const wall of walls) {
-            // CORRECTION : On passe directement 'wall' au lieu de 'wall.hitbox'
-            resolveCircleRectangle(player.hitbox, wall);
-        }
-    }
+/**
+ * Résout la collision entre un Rectangle dynamique et un Rectangle statique.
+ * Repousse le rectangle dynamique pour empêcher le chevauchement.
+ */
+export function resolveRectRect(dynamicRect, staticRect) {
+    // 1. Calcul des demi-tailles
+    const halfW1 = dynamicRect.width / 2;
+    const halfH1 = dynamicRect.height / 2;
+    const halfW2 = staticRect.width / 2;
+    const halfH2 = staticRect.height / 2;
 
-    // 2. Résolution Joueurs vs Joueurs
-    for (let i = 0; i < players.length; i++) {
-        for (let j = i + 1; j < players.length; j++) {
-            // Les joueurs utilisent la composition, donc on garde bien .hitbox
-            resolveCircleCircle(players[i].hitbox, players[j].hitbox);
+    // 2. Calcul du vecteur entre les deux centres
+    const dx = dynamicRect.x - staticRect.x;
+    const dy = dynamicRect.y - staticRect.y;
+
+    // 3. Calcul de la pénétration sur chaque axe
+    const overlapX = (halfW1 + halfW2) - Math.abs(dx);
+    const overlapY = (halfH1 + halfH2) - Math.abs(dy);
+
+    // S'il y a pénétration sur les DEUX axes, il y a collision
+    if (overlapX > 0 && overlapY > 0) {
+        
+        // On repousse toujours l'objet sur l'axe où la pénétration est la PLUS FAIBLE 
+        // (pour le faire sortir par le chemin le plus court)
+        if (overlapX < overlapY) {
+            if (dx > 0) dynamicRect.x += overlapX; // Repousse vers la droite
+            else dynamicRect.x -= overlapX;        // Repousse vers la gauche
+        } else {
+            if (dy > 0) dynamicRect.y += overlapY; // Repousse vers le bas
+            else dynamicRect.y -= overlapY;        // Repousse vers le haut
         }
+        
+        return true; // Collision détectée et résolue
     }
+    
+    return false;
+}
+
+export function isOverlappingCircleRect(circle, rect) {
+    const halfW = rect.width / 2;
+    const halfH = rect.height / 2;
+
+    const closestX = Math.max(rect.x - halfW, Math.min(circle.x, rect.x + halfW));
+    const closestY = Math.max(rect.y - halfH, Math.min(circle.y, rect.y + halfH));
+
+    const dx = circle.x - closestX;
+    const dy = circle.y - closestY;
+    const distanceSquared = (dx * dx) + (dy * dy);
+
+    // On utilise la distance au carré pour éviter un Math.sqrt() coûteux en performances
+    return distanceSquared < (circle.radius * circle.radius);
+}
+
+export function isOverlappingRectRect(r1, r2) {
+    return (
+        r1.x - r1.width/2 < r2.x + r2.width/2 &&
+        r1.x + r1.width/2 > r2.x - r2.width/2 &&
+        r1.y - r1.height/2 < r2.y + r2.height/2 &&
+        r1.y + r1.height/2 > r2.y - r2.height/2
+    );
 }
