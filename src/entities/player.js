@@ -2,6 +2,7 @@
 
 import { Circle } from './circle.js';
 import { keys, keys_2 } from '../core/input.js';
+import { joystick } from '../ui/joystick.js';
 
 export class Player {
     constructor(startX, startY, color = 'red') {

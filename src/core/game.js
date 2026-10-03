@@ -225,7 +225,7 @@ export class Game {
         this.camera.setZoomLevel(zoom);
         this.camera.update();
 
-        this.boundaries.forEach(wall => wall.draw(this.camera));
+        //this.boundaries.forEach(wall => wall.draw(this.camera));
         this.interiorWalls.forEach(wall => wall.draw(this.camera));
         
         // Affichage de tous les pics
