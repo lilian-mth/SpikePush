@@ -1,14 +1,22 @@
-body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* Désactive formellement tout scroll résiduel */
-    background-color: #111;
-}
 
 canvas {
     display: block; /* Supprime l'espace textuel invisible sous le canvas */
     width: 100vw;
     height: 100vh;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Désactive formellement tout scroll résiduel */
+    background-color: #163557;
+}
+
+#gameCanvas {
+    touch-action: none; /* Désactive le pan et le pinch-to-zoom natif */
+    user-select: none; /* Désactive la sélection de texte bleue */
+    -webkit-user-select: none; /* Pour Safari/iOS */
+    -webkit-touch-callout: none; /* Désactive le menu contextuel au clic long */
 }

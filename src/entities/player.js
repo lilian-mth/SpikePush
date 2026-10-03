@@ -31,30 +31,34 @@ export class Player {
     }
 
     update(dt) {
-        let dx = 0;
-        let dy = 0;
-
-        // Dans un repère mathématique classique, l'axe Y pointe vers le HAUT.
-        // Les touches sont donc inversées par rapport à un écran classique.
+        let dx = 0; //[cite: 6]
+        let dy = 0; //[cite: 6]
         
-        if (keys.z) dy += 1;
-        if (keys.s) dy -= 1;
-        if (keys.q) dx -= 1;
-        if (keys.d) dx += 1;
+        // --- Clavier ---
+        if (keys.z) dy += 1; //[cite: 6]
+        if (keys.s) dy -= 1; //[cite: 6]
+        if (keys.q) dx -= 1; //[cite: 6]
+        if (keys.d) dx += 1; //[cite: 6]
 
-        if (dx !== 0 && dy !== 0) {
-            const length = Math.sqrt(dx * dx + dy * dy);
-            dx /= length;
-            dy /= length;
+        // --- Joystick ---
+        if (joystick.active) {
+            dx += joystick.dx;
+            // On inverse dy car sur ton canvas Y descend, 
+            // mais mathématiquement (comme le fait ta touche Z), Y monte.
+            dy -= joystick.dy; 
         }
 
-        // On applique le déplacement à la position du joueur
-        this.x += dx * this.speed * dt;
-        this.y += dy * this.speed * dt;
+        // Normalisation (déjà dans ton code)[cite: 6]
+        if (dx !== 0 && dy !== 0) {
+            const length = Math.sqrt(dx * dx + dy * dy); //[cite: 6]
+            dx /= length; //[cite: 6]
+            dy /= length; //[cite: 6]
+        }
 
-        // On transfère l'intention de mouvement à la hitbox avant la physique
-        this.hitbox.x = this.x;
-        this.hitbox.y = this.y;
+        this.x += dx * this.speed * dt; //[cite: 6]
+        this.y += dy * this.speed * dt; //[cite: 6]
+        this.hitbox.x = this.x; //[cite: 6]
+        this.hitbox.y = this.y; //[cite: 6]
     }
 
     syncFromPhysics() {

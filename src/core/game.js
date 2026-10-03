@@ -11,6 +11,7 @@ import {
     resolveRectRect
 } from './physics.js';
 import { WorldWarning } from '../entities/warning.js';
+import { drawJoystick } from '../ui/joystick.js';
 
 export const GAME_CONFIG = {
     SPIKE_SPEED: 10,
@@ -238,5 +239,7 @@ export class Game {
                 if (warning.active) warning.draw(this.camera);
             });
         }
+
+        drawJoystick();
     }
 }
