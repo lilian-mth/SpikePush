@@ -12,10 +12,24 @@ jobs:
     - name: Get latest code
       uses: actions/checkout@v3
 
+    # --- NOUVELLES ÉTAPES POUR VITE ---
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build the game with Vite
+      run: npm run build
+    # ----------------------------------
+
     - name: Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: / # On déploie à la racine de cet accès FTP (qui est déjà ciblé sur ton dossier spikepush)
+        local-dir: ./dist/ # On indique au robot d'envoyer uniquement le dossier généré par Vite
+        server-dir: / # On déploie à la racine de cet accès FTP (qui est déjà ciblé sur ton dossier)

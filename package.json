@@ -1,0 +1,26 @@
+{
+  "name": "spikepush",
+  "version": "1.0.0",
+  "description": "**▶️ [Jouer à SpikePush sur liliandev.com](https://liliandev.com)**",
+  "main": "server.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lilian-mth/SpikePush.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lilian-mth/SpikePush/issues"
+  },
+  "homepage": "https://github.com/lilian-mth/SpikePush#readme",
+  "devDependencies": {
+    "vite": "^8.3.2"
+  }
+}
