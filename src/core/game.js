@@ -25,7 +25,7 @@ export const GAME_CONFIG = {
 export class Game {
     constructor() {
         this.camera = new Camera(2, 2, 8);
-        this.player1 = new Player(3.5, 3.5, '#ff0044');
+        this.player1 = new Player(3.5, 3.5, '#1b9038');
         
         const w = GAME_CONFIG.WIDTH;
         const h = GAME_CONFIG.HEIGHT;
