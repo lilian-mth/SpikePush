@@ -13,17 +13,17 @@ import {
 import { WorldWarning } from '../entities/warning.js';
 
 export const GAME_CONFIG = {
-    SPIKE_SPEED: 15,
+    SPIKE_SPEED: 10,
     WARNING_MAX_RADIUS: 0.5,
-    SPIKE_COOLDOWN_RETRACT: 0.5,
-    SPIKE_COOLDOWN_ATTACK: 3,
+    SPIKE_COOLDOWN_RETRACT: 1,
+    SPIKE_COOLDOWN_ATTACK: 2,
     WIDTH: 4,  // Coquille corrigée ici (anciennement WIDHT)
     HEIGHT: 4,
 };
 
 export class Game {
     constructor() {
-        this.camera = new Camera(2, 2, 6);
+        this.camera = new Camera(2, 2, 8);
         this.player1 = new Player(3.5, 3.5, '#ff0044');
         
         const w = GAME_CONFIG.WIDTH;
