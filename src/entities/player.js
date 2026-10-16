@@ -1,75 +1,36 @@
+export default class Player {
+    constructor(scene, x, y) {
+        this.scene = scene; // On garde une référence à la scène qui a créé le joueur
 
+        // 1. Création graphique et physique
+        this.sprite = scene.add.circle(x, y, 20, 0x00aaff);
+        scene.physics.add.existing(this.sprite);
+        this.sprite.body.setCircle(20);
+        this.sprite.body.setCollideWorldBounds(true);
 
-import { Circle } from './circle.js';
-import { keys, keys_2 } from '../core/input.js';
-import { joystick } from '../ui/joystick.js';
-
-export class Player {
-    constructor(startX, startY, color = 'red') {
-        this.spawnX = startX; // On garde en mémoire sa case de départ
-        this.spawnY = startY;
-        this.x = startX;
-        this.y = startY;
-        this.speed = 3;
-        this.hitbox = new Circle(this.x, this.y, 0.25, color);
+        // 2. Configuration des contrôles
+        this.cursors = scene.input.keyboard.createCursorKeys();
+        this.wasdKeys = scene.input.keyboard.addKeys('Z,Q,S,D');
         
-        // Nouvel état
-        this.isAlive = true;
+        this.speed = 300;
     }
 
-    die() {
-        if (!this.isAlive) return; // Évite de mourir plusieurs fois par frame
-        this.isAlive = false;
-        console.log(`Joueur éliminé !`);
-    }
+    // Cette fonction sera appelée à chaque frame par la scène
+    update() {
+        this.sprite.body.setVelocity(0);
 
-    respawn() {
-        this.isAlive = true;
-        this.x = this.spawnX;
-        this.y = this.spawnY;
-        this.hitbox.x = this.x;
-        this.hitbox.y = this.y;
-    }
-
-    update(dt) {
-        let dx = 0; //[cite: 6]
-        let dy = 0; //[cite: 6]
-        
-        // --- Clavier ---
-        if (keys.z) dy += 1; //[cite: 6]
-        if (keys.s) dy -= 1; //[cite: 6]
-        if (keys.q) dx -= 1; //[cite: 6]
-        if (keys.d) dx += 1; //[cite: 6]
-
-        // --- Joystick ---
-        if (joystick.active) {
-            dx += joystick.dx;
-            // On inverse dy car sur ton canvas Y descend, 
-            // mais mathématiquement (comme le fait ta touche Z), Y monte.
-            dy -= joystick.dy; 
+        // Mouvements horizontaux
+        if (this.cursors.left.isDown || this.wasdKeys.Q.isDown) {
+            this.sprite.body.setVelocityX(-this.speed);
+        } else if (this.cursors.right.isDown || this.wasdKeys.D.isDown) {
+            this.sprite.body.setVelocityX(this.speed);
         }
 
-        // Normalisation (déjà dans ton code)[cite: 6]
-        if (dx !== 0 && dy !== 0) {
-            const length = Math.sqrt(dx * dx + dy * dy); //[cite: 6]
-            dx /= length; //[cite: 6]
-            dy /= length; //[cite: 6]
+        // Mouvements verticaux
+        if (this.cursors.up.isDown || this.wasdKeys.Z.isDown) {
+            this.sprite.body.setVelocityY(-this.speed);
+        } else if (this.cursors.down.isDown || this.wasdKeys.S.isDown) {
+            this.sprite.body.setVelocityY(this.speed);
         }
-
-        this.x += dx * this.speed * dt; //[cite: 6]
-        this.y += dy * this.speed * dt; //[cite: 6]
-        this.hitbox.x = this.x; //[cite: 6]
-        this.hitbox.y = this.y; //[cite: 6]
-    }
-
-    syncFromPhysics() {
-        if (!this.isAlive) return;
-        this.x = this.hitbox.x;
-        this.y = this.hitbox.y;
-    }
-
-    draw(camera) {
-        if (!this.isAlive) return; // Un joueur mort ne s'affiche pas
-        this.hitbox.draw(camera);
     }
 }
