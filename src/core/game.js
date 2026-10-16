@@ -22,13 +22,29 @@ export const GAME_CONFIG = {
     HEIGHT: 4,
 };
 
+const GAMESTATE = Object.freeze({
+    HOME: 'HOME',
+    PLAYING: 'PLAYING',
+    PAUSED: 'PAUSED',
+    GAME_OVER: 'GAME_OVER'
+});
+
 export class Game {
     constructor() {
         this.camera = new Camera(2, 2, 8);
         this.player1 = new Player(3.5, 3.5, '#1b9038');
+        this.current_state = GAMESTATE.HOME;
         
         const w = GAME_CONFIG.WIDTH;
         const h = GAME_CONFIG.HEIGHT;
+
+        this.scenes = {
+            [GAMESTATE.HOME]: document.getElementById('ui-home'),
+            [GAMESTATE.PLAYING]: document.getElementById('ui-playing'),
+            [GAMESTATE.GAME_OVER]: document.getElementById('ui-gameover')
+        };
+
+        this.setupEventListeners();
 
         // --- 1. Murs extérieurs dynamiques ---
         this.boundaries = [
@@ -85,7 +101,17 @@ export class Game {
         this.isWarningActive = false;
     }
 
-    // ... le reste de tes méthodes (start, stop, loop, update, render) reste 100% identique !
+    updateUI(newState) {
+        // 1. On cache toutes les scènes
+        Object.values(this.scenes).forEach(scene => {
+            if (scene) scene.classList.add('hidden');
+        });
+        
+        // 2. On affiche uniquement la scène demandée
+        if (this.scenes[newState]) {
+            this.scenes[newState].classList.remove('hidden');
+        }
+    }
 
     start() {
         if (this.isRunning) return;
@@ -103,19 +129,55 @@ export class Game {
         }
     }
 
+    setupEventListeners() {
+        // Bouton Jouer
+        document.getElementById('btn-play').addEventListener('click', () => {
+            this.current_state = GAMESTATE.PLAYING;
+            this.updateUI(GAMESTATE.PLAYING);
+        });
+
+        // Bouton Rejouer
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            this.current_state = GAMESTATE.PLAYING;
+            this.updateUI(GAMESTATE.PLAYING);
+        });
+
+        document.getElementById('btn-home').addEventListener('click', () => {
+            this.current_state = GAMESTATE.HOME;
+            this.updateUI(GAMESTATE.HOME);
+        });
+    }
+
     loop(timestamp) {
         if (!this.isRunning) return;
 
         const dt = (timestamp - this.lastTime) / 1000;
         this.lastTime = timestamp;
 
-        this.update(dt);
-        this.render();
+        switch (this.current_state) {
+            case GAMESTATE.GAME_OVER:
+                
+                break;
+            case GAMESTATE.HOME:
+
+                break;
+            case GAMESTATE.PAUSED:
+
+                break;
+            case GAMESTATE.PLAYING:
+                this.update_world(dt);
+                this.render_world();
+                break;
+            default:
+                break;
+        }
+
+        
 
         this.animationFrameId = requestAnimationFrame(this.loop);
     }
 
-    update(dt) {
+    update_world(dt) {
         // --- 1. GESTION DU CYCLE DE JEU ---
         if (this.waveState === 'WAITING_ATTACK' || this.waveState === 'WAITING_RETRACT') {
             this.waveTimer -= dt; 
@@ -212,6 +274,8 @@ export class Game {
             for (const spike of allSpikes) {
                 if (isOverlappingCircleRect(this.player1.hitbox, spike.hitbox)) {
                     this.player1.die();
+                    this.current_state = GAMESTATE.GAME_OVER;
+                    this.updateUI(GAMESTATE.GAME_OVER);
                 }
             }
         }
@@ -220,7 +284,7 @@ export class Game {
         this.player1.syncFromPhysics();
     }
 
-    render() {
+    render_world() {
         ctx.clearRect(0, 0, screen.width, screen.height);
         this.camera.setZoomLevel(zoom);
         this.camera.update();

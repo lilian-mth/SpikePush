@@ -20,3 +20,48 @@ html, body {
     -webkit-user-select: none; /* Pour Safari/iOS */
     -webkit-touch-callout: none; /* Désactive le menu contextuel au clic long */
 }
+
+/* Le conteneur sert de point de référence pour les positions absolues */
+#game-container {
+  position: relative; 
+  width: 800px;
+  height: 600px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* Style commun à toutes les scènes */
+.ui-scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  /* Permet de centrer facilement le contenu (titres, boutons) */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  /* TRÈS IMPORTANT : Empêche l'UI invisible de bloquer les clics sur le canvas */
+  pointer-events: none; 
+}
+
+/* On réactive les clics uniquement sur les éléments interactifs de l'UI */
+.ui-scene button, 
+.ui-scene .hud-top {
+  pointer-events: auto;
+}
+
+/* Boutons stylisés */
+button {
+  padding: 10px 20px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Classe utilitaire pour cacher les scènes inactives */
+.hidden {
+  display: none !important;
+}

@@ -11,5 +11,25 @@
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    <!-- SCÈNE 1 : Menu Principal -->
+    <div id="ui-home" class="ui-scene">
+        <h1>Spikepush</h1>
+        <button id="btn-play">Play</button>
+    </div>
+
+    <!-- SCÈNE 2 : En Jeu (HUD) -->
+    <!-- On ajoute la classe 'hidden' par défaut pour la cacher -->
+    <div id="ui-playing" class="ui-scene hidden">
+        <div class="hud-top">
+        <span>Score : <span id="score-display">0</span></span>
+        </div>
+    </div>
+
+    <!-- SCÈNE 3 : Game Over -->
+    <div id="ui-gameover" class="ui-scene hidden">
+        <h2>Fin de la partie</h2>
+        <button id="btn-restart">Rejouer</button>
+        <button id="btn-home">Home</button>
+  </div>
 </body>
 </html>
