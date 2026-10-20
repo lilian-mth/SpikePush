@@ -9,10 +9,6 @@ export default class GameScene extends Phaser.Scene {
         super('GameScene');
     }
 
-    preload() {
-        this.load.image('perso', GAME_CONFIG.player.asset);
-    }
-
     create() {
         this.cameras.main.setBackgroundColor(GAME_CONFIG.colors.background);
         this.creerLimitesDuMonde();
@@ -88,7 +84,12 @@ export default class GameScene extends Phaser.Scene {
                 width: thickness,
                 height: height + 2 * thickness
             },
-            ...GAME_CONFIG.walls.internal
+            ...GAME_CONFIG.walls.internal.map(({ column, row }) => ({
+                x: -width / 2 + column + 0.5,
+                y: -height / 2 + row + 0.5,
+                width: 1,
+                height: 1
+            }))
         ];
 
         this.murs = layouts.map((layout) => new Wall(this, layout));

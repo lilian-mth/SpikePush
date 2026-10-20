@@ -5,16 +5,25 @@ import { GAME_CONFIG } from './config/game_config.js';
 
 document.documentElement.style.setProperty('--page-background', GAME_CONFIG.colors.background);
 
+const MAX_PIXEL_RATIO = 2;
+const getGameResolution = () => {
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+    return Math.ceil(Math.min(window.innerWidth, window.innerHeight) * pixelRatio);
+};
+const initialResolution = getGameResolution();
+
 const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
     scale: {
-        mode: Phaser.Scale.RESIZE,
-        width: '100%',
-        height: '100%'
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: initialResolution,
+        height: initialResolution
     },
-    resolution: window.devicePixelRatio || 1,
-    autoRound: true,
+    antialias: true,
+    pixelArt: false,
+    roundPixels: false,
     physics: {
         default: 'arcade'
     },
@@ -26,4 +35,10 @@ const config = {
     scene: [HomeScene, GameScene]
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+window.addEventListener('resize', () => {
+    const resolution = getGameResolution();
+    if (game.scale.width !== resolution || game.scale.height !== resolution) {
+        game.scale.resize(resolution, resolution);
+    }
+});

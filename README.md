@@ -23,7 +23,7 @@ Ces règles décrivent la direction souhaitée, pas des fonctionnalités déjà 
 - Quatre murs corail solides d'**1 unité d'épaisseur**, autour de l'arène.
 - Une caméra centrée qui cadre **6 × 6 unités**, murs compris.
 - Un joueur au centre, contrôlable au clavier avec les **flèches** ou **ZQSD**.
-- Un joystick virtuel tactile en bas à gauche pendant la partie.
+- Un joystick virtuel tactile dynamique, qui apparaît sous le doigt dans la moitié gauche de l'écran.
 - Un écran d'accueil avec un bouton **JOUER** pour lancer la partie.
 - Deux murs intérieurs solides de **1 × 1 unité**.
 - Déplacement diagonal normalisé pour conserver la même vitesse dans toutes les directions.
@@ -41,7 +41,8 @@ Les positions et dimensions Phaser sont exprimées en pixels du monde. Pour rais
 | Zone jouable | 4 × 4 U, soit 1 000 × 1 000 pixels |
 | Chaque mur | 1 U d'épaisseur |
 | Vue de la caméra | 6 × 6 U, soit 1 500 × 1 500 pixels |
-| Vitesse du joueur | 300 pixels/s, soit 1,2 U/s |
+| Diamètre du joueur | 0,45 U, soit 112,5 pixels du monde |
+| Vitesse du joueur | 375 pixels/s, soit 1,5 U/s |
 
 Les murs ont une longueur de 6 U sur leur côté extérieur. Ils se rejoignent aux coins afin de fermer complètement l'arène. Les coins font partie de l'épaisseur des murs, ils ne réduisent donc pas la zone intérieure de 4 × 4 U.
 
@@ -49,7 +50,7 @@ La caméra prend la plus petite dimension de la fenêtre carrée et la divise pa
 
 ### Taille de l'image du joueur
 
-L'image actuelle, `public/assets/player.png`, fait **114 × 150 pixels**. Le sprite est affiché à sa taille native, tandis que sa hitbox est un cercle de 50 pixels de rayon. Pour créer une nouvelle image, compare sa taille affichée à l'échelle du monde, pas uniquement sa résolution de dessin. Une hauteur de 0,5 à 0,7 U correspond à 125–175 pixels du monde avec l'échelle actuelle.
+Le joueur est actuellement un cercle vectoriel généré par Phaser, de **0,45 U de diamètre** (112,5 pixels du monde). Sa hitbox circulaire a exactement le même rayon que le cercle dessiné, ce qui évite un décalage visuel entre le joueur et ses collisions. Le paramètre `player.diameterUnits` permet de modifier ensemble la taille visible et la taille de collision. Le fichier `public/assets/player.png` n'est pas utilisé par ce cercle.
 
 ## Lancer le projet
 
@@ -81,10 +82,10 @@ src/main.js                 Configuration et démarrage de Phaser
 src/config/game_config.js   Réglages du jeu : tailles, couleurs, positions et contrôles
 src/scenes/home_scene.js    Écran d'accueil et bouton de lancement
 src/scenes/game_scene.js    Chargement, arène, collisions et caméra
-src/entities/player.js      Sprite, contrôles, vitesse et rotation du joueur
+src/entities/player.js      Cercle du joueur, hitbox, contrôles et vitesse
 src/entities/wall.js        Création d'un mur solide
 src/entities/virtual_joystick.js Joystick tactile et entrée directionnelle
-public/assets/player.png    Image du joueur
+public/assets/player.png    Ancienne image du joueur (le prototype utilise un cercle vectoriel)
 ```
 
 ## Modifier les paramètres du jeu
@@ -94,9 +95,9 @@ Les réglages de gameplay et de présentation sont regroupés dans `src/config/g
 - `unitPixels`, `arena` et `camera` règlent l'échelle, la taille de l'arène et le cadrage.
 - `colors` regroupe le fond, les murs, le menu et le joystick.
 - `player.startPositions` contient les positions de départ en unités, relatives au centre de l'arène. Pour l'instant, seul le premier départ est utilisé puisque le prototype n'a qu'un joueur.
-- `player.speedUnitsPerSecond`, `hitboxRadiusUnits`, `hitboxOffsetUnits`, `origin` et `rotationStep` règlent le mouvement et le corps du joueur.
-- `walls.thickness` règle l'épaisseur des murs extérieurs. `walls.internal` est la liste des murs intérieurs ; chaque entrée donne son centre (`x`, `y`) et ses dimensions (`width`, `height`) en unités. Par exemple, `{ x: -1, y: 0, width: 1, height: 1 }` place un mur carré d'une unité à gauche du centre.
-- `joystick` règle les dimensions, la marge, la zone morte et l'apparence du joystick tactile.
+- `player.diameterUnits` et `speedUnitsPerSecond` règlent la taille et le mouvement du joueur. La hitbox circulaire est alignée sur le diamètre visible.
+- `walls.thickness` règle l'épaisseur des murs extérieurs. `walls.internal` contient les coordonnées `column` et `row` des cases occupées par les obstacles intérieurs. Chaque obstacle occupe une case de 1 × 1 U ; colonnes et lignes commencent à 0 en haut à gauche.
+- `joystick` règle la taille, la zone d'apparition, la zone morte et l'apparence grise du joystick tactile.
 - `home` règle les textes, les tailles de police, la position et les dimensions du bouton de l'écran d'accueil.
 
 Les murs intérieurs sont positionnés par leur centre. L'axe X positif va vers la droite, et l'axe Y positif vers le bas. Les dimensions et positions du joueur et des murs sont converties en pixels Phaser avec `unitPixels`.
@@ -110,9 +111,9 @@ Phaser est le moteur de jeu JavaScript utilisé ici pour afficher le canvas, lir
 - `new Phaser.Game(config)` crée et démarre le jeu.
 - `type: Phaser.AUTO` laisse Phaser choisir le moteur de rendu disponible, WebGL ou Canvas.
 - `parent: 'game-container'` place le canvas dans l'élément HTML correspondant.
-- `Phaser.Scale.RESIZE` redimensionne le canvas avec son conteneur. Le CSS rend ce conteneur carré.
-- `resolution: window.devicePixelRatio || 1` adapte la résolution du canvas à la densité de pixels de l'écran.
-- `autoRound: true` arrondit les valeurs de rendu pour éviter les positions fractionnaires à l'affichage.
+- `Phaser.Scale.FIT` conserve la résolution interne haute définition et ajuste son affichage au conteneur carré.
+- La résolution interne est calculée depuis la taille de la fenêtre et la densité de pixels de l'écran, plafonnée à 2× pour préserver les performances. Elle est actualisée quand la fenêtre change de taille.
+- `antialias: true`, `pixelArt: false` et `roundPixels: false` privilégient un rendu lissé, adapté aux illustrations non pixel art.
 - `physics.default: 'arcade'` active Arcade Physics, le système de collisions 2D simple de Phaser.
 - `scene: [HomeScene, GameScene]` enregistre les scènes dans le jeu et lance d'abord `HomeScene`.
 
@@ -129,7 +130,7 @@ Phaser est le moteur de jeu JavaScript utilisé ici pour afficher le canvas, lir
 
 Une scène Phaser organise une partie ou un écran du jeu. Phaser appelle ses méthodes dans cet ordre :
 
-1. `preload()` charge les ressources avant le démarrage de la scène. `this.load.image('perso', 'assets/player.png')` enregistre l'image sous la clé `perso`.
+1. `preload()` est la phase de chargement des ressources si la scène en utilise. La scène de jeu actuelle dessine le joueur en vecteur et n'a pas de ressource à charger.
 2. `create()` s'exécute une fois pour construire le monde : limites physiques, joueur, murs, collisions et caméra.
 3. `update()` s'exécute à chaque image affichée et transmet l'actualisation au joueur.
 
@@ -144,14 +145,11 @@ Autres appels Phaser utilisés dans la scène :
 
 ### Joueur — `src/entities/player.js`
 
-- `scene.physics.add.sprite(x, y, 'perso')` crée un sprite avec un corps Arcade Physics.
-- `setOrigin(x, y)` déplace le point d'origine utilisé pour positionner et faire tourner le sprite. Ici, les valeurs correspondent au visuel actuel de 114 × 150 pixels.
-- `body.setCircle(50, 0, 25)` donne au joueur une hitbox circulaire de rayon 50 pixels, décalée par rapport au sprite.
+- `scene.add.circle(x, y, radius, color)` dessine le joueur comme une forme vectorielle ; `scene.physics.add.existing(circle)` lui ajoute un corps Arcade Physics et `body.setCircle(radius)` aligne sa hitbox sur son dessin.
 - `body.setCollideWorldBounds(true)` active la collision avec les limites du monde.
 - `createCursorKeys()` lit les flèches ; `addKeys('Z,Q,S,D')` lit les touches ZQSD.
 - `body.setVelocity(x, y)` applique la vitesse du joueur en pixels par seconde.
-- `Math.SQRT1_2` réduit les deux axes lors d'un déplacement diagonal afin que la diagonale ne soit pas plus rapide.
-- `Phaser.Math.Angle.RotateTo(...)` fait tourner progressivement le sprite vers la direction du déplacement.
+- La norme du vecteur de déplacement limite sa longueur à 1, pour conserver la même vitesse dans toutes les directions.
 
 ### Murs — `src/entities/wall.js`
 
@@ -161,9 +159,14 @@ Autres appels Phaser utilisés dans la scène :
 ### Joystick — `src/entities/virtual_joystick.js`
 
 - Le joystick n'est créé que si Phaser détecte un appareil tactile.
+- Au toucher dans la moitié gauche de l'écran, la base apparaît à cet emplacement et le joystick suit le doigt. Il se masque lorsque le doigt est relâché.
 - Une caméra HUD séparée garde le joystick à taille constante à l'écran malgré le zoom de la caméra du jeu.
 - Les événements `pointerdown`, `pointermove` et `pointerup` capturent et suivent le doigt. Le stick renvoie une direction normalisée `x`/`y` que le joueur ajoute à ses contrôles clavier.
 - `pointerupoutside` et l'événement de fermeture de la scène libèrent les entrées et les écouteurs.
+
+### Qualité des images
+
+Le joueur est dessiné en vecteur par Phaser, et non agrandi depuis le PNG `public/assets/player.png`. Le canvas utilise jusqu'à deux fois la densité de pixels de l'écran ; cette limite conserve un rendu net sans créer des buffers excessivement grands.
 
 ## Évolutions prévues
 

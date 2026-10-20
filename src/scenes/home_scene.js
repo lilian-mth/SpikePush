@@ -11,14 +11,12 @@ export default class HomeScene extends Phaser.Scene {
 
         this.title = this.add.text(0, 0, GAME_CONFIG.home.title, {
             fontFamily: 'Arial, sans-serif',
-            fontSize: `${GAME_CONFIG.home.titleFontSize}px`,
             fontStyle: 'bold',
             color: GAME_CONFIG.colors.homeText
         }).setOrigin(0.5);
 
         this.subtitle = this.add.text(0, 0, GAME_CONFIG.home.subtitle, {
             fontFamily: 'Arial, sans-serif',
-            fontSize: `${GAME_CONFIG.home.subtitleFontSize}px`,
             color: GAME_CONFIG.colors.homeText,
             align: 'center',
             wordWrap: { width: 420 }
@@ -34,7 +32,6 @@ export default class HomeScene extends Phaser.Scene {
 
         this.playLabel = this.add.text(0, 0, GAME_CONFIG.home.playLabel, {
             fontFamily: 'Arial, sans-serif',
-            fontSize: `${GAME_CONFIG.home.buttonFontSize}px`,
             fontStyle: 'bold',
             color: GAME_CONFIG.home.buttonTextColor
         }).setOrigin(0.5);
@@ -57,12 +54,33 @@ export default class HomeScene extends Phaser.Scene {
     }
 
     layout() {
+        const pixelRatio = this.scale.width / this.sys.game.canvas.clientWidth;
         const centerX = this.scale.width / 2;
         const centerY = this.scale.height / 2;
 
-        this.title.setPosition(centerX, centerY + GAME_CONFIG.home.titleOffsetY);
-        this.subtitle.setPosition(centerX, centerY + GAME_CONFIG.home.subtitleOffsetY);
-        const buttonY = centerY + GAME_CONFIG.home.buttonOffsetY;
+        this.title
+            .setFontSize(GAME_CONFIG.home.titleFontSize * pixelRatio)
+            .setResolution(pixelRatio);
+        this.subtitle
+            .setFontSize(GAME_CONFIG.home.subtitleFontSize * pixelRatio)
+            .setWordWrapWidth(420 * pixelRatio)
+            .setResolution(pixelRatio);
+        this.playLabel
+            .setFontSize(GAME_CONFIG.home.buttonFontSize * pixelRatio)
+            .setResolution(pixelRatio);
+        this.playButton.setSize(
+            GAME_CONFIG.home.buttonWidth * pixelRatio,
+            GAME_CONFIG.home.buttonHeight * pixelRatio
+        );
+        this.title.setPosition(
+            centerX,
+            centerY + GAME_CONFIG.home.titleOffsetY * pixelRatio
+        );
+        this.subtitle.setPosition(
+            centerX,
+            centerY + GAME_CONFIG.home.subtitleOffsetY * pixelRatio
+        );
+        const buttonY = centerY + GAME_CONFIG.home.buttonOffsetY * pixelRatio;
         this.playButton.setPosition(centerX, buttonY);
         this.playLabel.setPosition(centerX, buttonY);
     }

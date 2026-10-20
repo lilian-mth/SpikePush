@@ -8,8 +8,10 @@ export default class VirtualJoystick {
         this.pointerId = null;
         this.x = 0;
         this.y = 0;
-        this.baseRadius = GAME_CONFIG.joystick.baseRadius;
-        this.knobRadius = GAME_CONFIG.joystick.knobRadius;
+        this.visible = false;
+        this.pixelRatio = this.getPixelRatio();
+        this.baseRadius = GAME_CONFIG.joystick.baseRadius * this.pixelRatio;
+        this.knobRadius = GAME_CONFIG.joystick.knobRadius * this.pixelRatio;
         this.maxDistance = this.baseRadius - this.knobRadius;
 
         this.base = scene.add.circle(
@@ -21,7 +23,7 @@ export default class VirtualJoystick {
         )
             .setStrokeStyle(
                 GAME_CONFIG.joystick.baseStrokeWidth,
-                GAME_CONFIG.colors.joystickBase,
+                GAME_CONFIG.colors.joystickStroke,
                 GAME_CONFIG.joystick.baseStrokeAlpha
             )
             .setScrollFactor(0)
@@ -35,6 +37,7 @@ export default class VirtualJoystick {
         )
             .setScrollFactor(0)
             .setDepth(1001);
+        this.setVisible(false);
 
         gameCamera.ignore([this.base, this.knob]);
         hudCamera.ignore(worldObjects);
@@ -50,15 +53,15 @@ export default class VirtualJoystick {
     }
 
     handlePointerDown(pointer) {
-        if (this.pointerId !== null) {
+        const activeZone = this.scene.scale.width * GAME_CONFIG.joystick.activeZoneWidth;
+        if (this.pointerId !== null || pointer.x > activeZone) {
             return;
         }
 
-        const distance = Phaser.Math.Distance.Between(pointer.x, pointer.y, this.base.x, this.base.y);
-        if (distance <= this.baseRadius * 1.5) {
-            this.pointerId = pointer.id;
-            this.moveKnob(pointer);
-        }
+        this.pointerId = pointer.id;
+        this.setVisible(true);
+        this.setBasePosition(pointer.x, pointer.y);
+        this.moveKnob(pointer);
     }
 
     handlePointerMove(pointer) {
@@ -72,7 +75,7 @@ export default class VirtualJoystick {
             this.pointerId = null;
             this.x = 0;
             this.y = 0;
-            this.knob.setPosition(this.base.x, this.base.y);
+            this.setVisible(false);
         }
     }
 
@@ -95,20 +98,42 @@ export default class VirtualJoystick {
         );
     }
 
-    reposition() {
-        const margin = GAME_CONFIG.joystick.margin;
-        const x = margin + this.baseRadius;
-        const y = this.scene.scale.height - margin - this.baseRadius;
+    setBasePosition(x, y) {
+        const padding = this.baseRadius;
+        const maxX = Math.max(padding, this.scene.scale.width * GAME_CONFIG.joystick.activeZoneWidth);
+        const maxY = Math.max(padding, this.scene.scale.height - padding);
+        const boundedX = Phaser.Math.Clamp(x, padding, maxX);
+        const boundedY = Phaser.Math.Clamp(y, padding, maxY);
+        this.base.setPosition(boundedX, boundedY);
+        this.knob.setPosition(boundedX, boundedY);
+    }
 
-        this.base.setPosition(x, y);
-        this.knob.setPosition(x, y);
+    setVisible(visible) {
+        this.visible = visible;
+        this.base.setVisible(visible);
+        this.knob.setVisible(visible);
+    }
+
+    reposition() {
         this.pointerId = null;
         this.x = 0;
         this.y = 0;
+        this.setVisible(false);
     }
 
     resizeCamera() {
         this.hudCamera.setSize(this.scene.scale.width, this.scene.scale.height);
+        this.pixelRatio = this.getPixelRatio();
+        this.baseRadius = GAME_CONFIG.joystick.baseRadius * this.pixelRatio;
+        this.knobRadius = GAME_CONFIG.joystick.knobRadius * this.pixelRatio;
+        this.maxDistance = this.baseRadius - this.knobRadius;
+        this.base.setRadius(this.baseRadius);
+        this.knob.setRadius(this.knobRadius);
+        this.reposition();
+    }
+
+    getPixelRatio() {
+        return this.scene.scale.width / this.scene.sys.game.canvas.clientWidth;
     }
 
     destroy() {
