@@ -1,62 +1,60 @@
 import Phaser from 'phaser';
 import Player from '../entities/player.js';
+import Wall from '../entities/wall.js';
+
+const TAILLE_UNITE = 250;
+const TAILLE_ARENE_EN_UNITES = 4;
+const TAILLE_CAMERA_EN_UNITES = 6;
+const EPAISSEUR_MUR_EN_UNITES = 1;
+const COULEUR_MURS = 0xe76f51;
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
-        super('GameScene'); 
+        super('GameScene');
     }
 
     preload() {
-        // 'perso' est le nom de code (la clé) qu'on donne à cette image
-        // 'assets/player.png' est le chemin vers le fichier
         this.load.image('perso', 'assets/player.png');
     }
 
     create() {
-        const centreAreneX = 0;
-        const centreAreneY = 0;
-        const largeurArene = 1000;
-        const hauteurArene = 1000;
+        const largeurArene = TAILLE_ARENE_EN_UNITES * TAILLE_UNITE;
+        const hauteurArene = TAILLE_ARENE_EN_UNITES * TAILLE_UNITE;
+        const epaisseurMur = EPAISSEUR_MUR_EN_UNITES * TAILLE_UNITE;
+        const largeurMursHorizontaux = largeurArene + 2 * epaisseurMur;
+        const hauteurMursVerticaux = hauteurArene + 2 * epaisseurMur;
+        const decalageMur = (TAILLE_ARENE_EN_UNITES / 2 + EPAISSEUR_MUR_EN_UNITES / 2) * TAILLE_UNITE;
 
-        // --- NOUVEAU : Définir les limites de l'arène physique ---
-        // On part de -500x, -500y pour que le point (0,0) soit exactement au centre du carré de 1000x1000
         this.physics.world.setBounds(
-            -(largeurArene / 2), 
-            -(hauteurArene / 2), 
-            largeurArene, 
-            hauteurArene
+            -(largeurMursHorizontaux / 2),
+            -(hauteurArene / 2 + epaisseurMur),
+            largeurMursHorizontaux,
+            hauteurArene + 2 * epaisseurMur
         );
 
-        this.player = new Player(this, centreAreneX, centreAreneY);
+        this.player = new Player(this, 0, 0);
+        this.murs = [
+            new Wall(this, 0, -decalageMur, largeurMursHorizontaux, epaisseurMur, COULEUR_MURS),
+            new Wall(this, 0, decalageMur, largeurMursHorizontaux, epaisseurMur, COULEUR_MURS),
+            new Wall(this, -decalageMur, 0, epaisseurMur, hauteurMursVerticaux, COULEUR_MURS),
+            new Wall(this, decalageMur, 0, epaisseurMur, hauteurMursVerticaux, COULEUR_MURS)
+        ];
 
-        this.cameras.main.centerOn(centreAreneX, centreAreneY);
+        this.murs.forEach(({ rectangle }) => {
+            this.physics.add.collider(this.player.sprite, rectangle);
+        });
+        this.cameras.main.setBackgroundColor('#F4F1DE');
+        this.cameras.main.setBackgroundColor('#F4F1DE');
         this.ajusterZoom();
         this.scale.on('resize', this.ajusterZoom, this);
     }
 
     ajusterZoom() {
-        // Définis ici la taille totale de ton arène mathématique (en pixels Phaser)
-        // Par exemple, si ton arène fait 1000x1000 pixels :
-        const largeurArene = 1000;
-        const hauteurArene = 1000;
-        
-        // On calcule combien de fois l'arène rentre dans l'écran en largeur et en hauteur
-        const ratioX = this.scale.width / largeurArene;
-        const ratioY = this.scale.height / hauteurArene;
+        const tailleCamera = TAILLE_CAMERA_EN_UNITES * TAILLE_UNITE;
+        const zoom = Math.min(this.scale.width, this.scale.height) / tailleCamera;
 
-        // On garde le plus petit ratio pour s'assurer que RIEN n'est coupé
-        // (Si l'écran est un téléphone vertical, c'est la largeur qui dictera le zoom.
-        // Si c'est un écran PC très large, c'est la hauteur qui limitera.)
-        let zoomOptimal = Math.min(ratioX, ratioY);
-
-        // (Optionnel) Tu peux appliquer une petite marge (ex: 0.95 = 5% de marge noire autour de l'arène)
-        zoomOptimal *= 0.95;
-
-        // On applique le zoom fixe à la caméra
-        this.cameras.main.setZoom(zoomOptimal);
-        
-        // On s'assure que la caméra reste bien centrée après avoir zoomé
-        this.cameras.main.centerOn(0, 0); // Remets bien le centre de ton arène ici
+        this.cameras.main.setZoom(zoom);
+        this.cameras.main.centerOn(0, 0);
     }
 
     update() {

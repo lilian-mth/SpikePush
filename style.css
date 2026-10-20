@@ -3,45 +3,21 @@ html, body {
     padding: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden; /* Désactive formellement tout scroll résiduel */
-    background-color: #163557;
+    overflow: hidden;
+    background-color: #F4F1DE;
+}
+
+body {
+    display: grid;
+    place-items: center;
 }
 
 #game-container {
-    width: 100vw;
-    height: 100vh;
-    /* On supprime les marges et les tailles fixes (800x600) */
+    width: 100vmin;
+    height: 100vmin;
+    box-sizing: border-box;
 }
 
 canvas {
-    display: block; /* Supprime l'espace textuel invisible sous le canvas */
-}
-
-/* Le reste de tes classes UI peut rester tel quel */
-.ui-scene {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  pointer-events: none; 
-}
-
-.ui-scene button, 
-.ui-scene .hud-top {
-  pointer-events: auto;
-}
-
-button {
-  padding: 10px 20px;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.hidden {
-  display: none !important;
+    display: block;
 }

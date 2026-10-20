@@ -12,11 +12,9 @@ const config = {
     resolution: window.devicePixelRatio || 1,
     autoRound: true,
     physics: {
-        default: 'arcade',
-        arcade: { debug: true }
+        default: 'arcade'
     },
-    // On passe un tableau avec nos scènes importées
-    scene: [GameScene] 
+    scene: [GameScene]
 };
 
-const game = new Phaser.Game(config);
+new Phaser.Game(config);
