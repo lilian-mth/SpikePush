@@ -1,12 +1,8 @@
 import Phaser from 'phaser';
 import Player from '../entities/player.js';
+import VirtualJoystick from '../entities/virtual_joystick.js';
 import Wall from '../entities/wall.js';
-
-const TAILLE_UNITE = 250;
-const TAILLE_ARENE_EN_UNITES = 4;
-const TAILLE_CAMERA_EN_UNITES = 6;
-const EPAISSEUR_MUR_EN_UNITES = 1;
-const COULEUR_MURS = 0xe76f51;
+import { GAME_CONFIG } from '../config/game_config.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -14,44 +10,97 @@ export default class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('perso', 'assets/player.png');
+        this.load.image('perso', GAME_CONFIG.player.asset);
     }
 
     create() {
-        const largeurArene = TAILLE_ARENE_EN_UNITES * TAILLE_UNITE;
-        const hauteurArene = TAILLE_ARENE_EN_UNITES * TAILLE_UNITE;
-        const epaisseurMur = EPAISSEUR_MUR_EN_UNITES * TAILLE_UNITE;
-        const largeurMursHorizontaux = largeurArene + 2 * epaisseurMur;
-        const hauteurMursVerticaux = hauteurArene + 2 * epaisseurMur;
-        const decalageMur = (TAILLE_ARENE_EN_UNITES / 2 + EPAISSEUR_MUR_EN_UNITES / 2) * TAILLE_UNITE;
+        this.cameras.main.setBackgroundColor(GAME_CONFIG.colors.background);
+        this.creerLimitesDuMonde();
+        this.creerMurs();
 
-        this.physics.world.setBounds(
-            -(largeurMursHorizontaux / 2),
-            -(hauteurArene / 2 + epaisseurMur),
-            largeurMursHorizontaux,
-            hauteurArene + 2 * epaisseurMur
-        );
-
-        this.player = new Player(this, 0, 0);
-        this.murs = [
-            new Wall(this, 0, -decalageMur, largeurMursHorizontaux, epaisseurMur, COULEUR_MURS),
-            new Wall(this, 0, decalageMur, largeurMursHorizontaux, epaisseurMur, COULEUR_MURS),
-            new Wall(this, -decalageMur, 0, epaisseurMur, hauteurMursVerticaux, COULEUR_MURS),
-            new Wall(this, decalageMur, 0, epaisseurMur, hauteurMursVerticaux, COULEUR_MURS)
-        ];
-
+        const start = GAME_CONFIG.player.startPositions[0];
+        this.player = new Player(this, start.x, start.y);
         this.murs.forEach(({ rectangle }) => {
             this.physics.add.collider(this.player.sprite, rectangle);
         });
-        this.cameras.main.setBackgroundColor('#F4F1DE');
-        this.cameras.main.setBackgroundColor('#F4F1DE');
+
+        if (this.sys.game.device.input.touch) {
+            this.hudCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+            this.hudCamera.setScroll(0, 0);
+            this.joystick = new VirtualJoystick(
+                this,
+                this.hudCamera,
+                this.cameras.main,
+                [this.player.sprite, ...this.murs.map(({ rectangle }) => rectangle)]
+            );
+        } else {
+            this.joystick = { x: 0, y: 0 };
+        }
+
+        this.player.joystick = this.joystick;
+
         this.ajusterZoom();
         this.scale.on('resize', this.ajusterZoom, this);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            this.scale.off('resize', this.ajusterZoom, this);
+        });
+    }
+
+    creerLimitesDuMonde() {
+        const unit = GAME_CONFIG.unitPixels;
+        const halfWidth = GAME_CONFIG.arena.width / 2;
+        const halfHeight = GAME_CONFIG.arena.height / 2;
+        const thickness = GAME_CONFIG.walls.thickness;
+
+        this.physics.world.setBounds(
+            (-halfWidth - thickness) * unit,
+            (-halfHeight - thickness) * unit,
+            (GAME_CONFIG.arena.width + 2 * thickness) * unit,
+            (GAME_CONFIG.arena.height + 2 * thickness) * unit
+        );
+    }
+
+    creerMurs() {
+        const { width, height } = GAME_CONFIG.arena;
+        const thickness = GAME_CONFIG.walls.thickness;
+        const layouts = [
+            {
+                x: 0,
+                y: -height / 2 - thickness / 2,
+                width: width + 2 * thickness,
+                height: thickness
+            },
+            {
+                x: 0,
+                y: height / 2 + thickness / 2,
+                width: width + 2 * thickness,
+                height: thickness
+            },
+            {
+                x: -width / 2 - thickness / 2,
+                y: 0,
+                width: thickness,
+                height: height + 2 * thickness
+            },
+            {
+                x: width / 2 + thickness / 2,
+                y: 0,
+                width: thickness,
+                height: height + 2 * thickness
+            },
+            ...GAME_CONFIG.walls.internal
+        ];
+
+        this.murs = layouts.map((layout) => new Wall(this, layout));
     }
 
     ajusterZoom() {
-        const tailleCamera = TAILLE_CAMERA_EN_UNITES * TAILLE_UNITE;
-        const zoom = Math.min(this.scale.width, this.scale.height) / tailleCamera;
+        const cameraWidth = GAME_CONFIG.camera.width * GAME_CONFIG.unitPixels;
+        const cameraHeight = GAME_CONFIG.camera.height * GAME_CONFIG.unitPixels;
+        const zoom = Math.min(
+            this.scale.width / cameraWidth,
+            this.scale.height / cameraHeight
+        );
 
         this.cameras.main.setZoom(zoom);
         this.cameras.main.centerOn(0, 0);

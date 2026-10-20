@@ -2,7 +2,7 @@
 
 SpikePush est un jeu d'arène multijoueur en vue de dessus, conçu pour navigateur. Le concept est une partie de survie : plusieurs joueurs partagent une petite salle, esquivent des piques qui sortent des murs et tentent de rester le dernier survivant.
 
-> **État du projet :** le dépôt contient actuellement un prototype local de déplacement dans une arène. Le multijoueur, les piques, les vies, les avertissements visuels et les contrôles tactiles décrits dans le concept restent à développer.
+> **État du projet :** le dépôt contient un prototype local avec un menu, un joueur, un joystick tactile et une arène. Le multijoueur, les piques, les vies et les avertissements visuels restent à développer.
 
 ## Concept et règles prévues
 
@@ -12,7 +12,8 @@ SpikePush est un jeu d'arène multijoueur en vue de dessus, conçu pour navigate
 - Les piques avancent depuis le mur annoncé jusqu'au mur opposé. Un joueur touché par leur pointe pendant leur déplacement perd une vie.
 - Les vagues deviennent progressivement plus difficiles : les piques accélèrent et le délai d'avertissement raccourcit.
 - Le dernier joueur encore en vie remporte la partie.
-- Les contrôles mobiles utiliseront un joystick virtuel. Une capacité de dash ou de poussée est envisagée, mais ses règles restent à définir.
+- Le prototype dispose d'un joystick virtuel sur les appareils tactiles. Les commandes clavier restent disponibles sur ordinateur.
+- Une capacité de dash ou de poussée est envisagée, mais ses règles restent à définir.
 
 Ces règles décrivent la direction souhaitée, pas des fonctionnalités déjà présentes dans le code.
 
@@ -22,10 +23,13 @@ Ces règles décrivent la direction souhaitée, pas des fonctionnalités déjà 
 - Quatre murs corail solides d'**1 unité d'épaisseur**, autour de l'arène.
 - Une caméra centrée qui cadre **6 × 6 unités**, murs compris.
 - Un joueur au centre, contrôlable au clavier avec les **flèches** ou **ZQSD**.
+- Un joystick virtuel tactile en bas à gauche pendant la partie.
+- Un écran d'accueil avec un bouton **JOUER** pour lancer la partie.
+- Deux murs intérieurs solides de **1 × 1 unité**.
 - Déplacement diagonal normalisé pour conserver la même vitesse dans toutes les directions.
 - Le navigateur et l'interface sont affichés dans un cadre carré aussi grand que possible.
 
-Il n'y a pour l'instant ni réseau/multijoueur, ni piques, ni vies ou condition de victoire, ni joystick tactile.
+Il n'y a pour l'instant ni réseau/multijoueur, ni piques, ni vies ou condition de victoire.
 
 ## Échelle et dimensions
 
@@ -74,11 +78,28 @@ npm run preview
 index.html                  Page d'entrée et conteneur du jeu
 style.css                   Fond global et cadrage carré de la fenêtre
 src/main.js                 Configuration et démarrage de Phaser
-src/scenes/game_scene.js    Chargement, création de l'arène et caméra
+src/config/game_config.js   Réglages du jeu : tailles, couleurs, positions et contrôles
+src/scenes/home_scene.js    Écran d'accueil et bouton de lancement
+src/scenes/game_scene.js    Chargement, arène, collisions et caméra
 src/entities/player.js      Sprite, contrôles, vitesse et rotation du joueur
 src/entities/wall.js        Création d'un mur solide
+src/entities/virtual_joystick.js Joystick tactile et entrée directionnelle
 public/assets/player.png    Image du joueur
 ```
+
+## Modifier les paramètres du jeu
+
+Les réglages de gameplay et de présentation sont regroupés dans `src/config/game_config.js`, dans l'objet `GAME_CONFIG` :
+
+- `unitPixels`, `arena` et `camera` règlent l'échelle, la taille de l'arène et le cadrage.
+- `colors` regroupe le fond, les murs, le menu et le joystick.
+- `player.startPositions` contient les positions de départ en unités, relatives au centre de l'arène. Pour l'instant, seul le premier départ est utilisé puisque le prototype n'a qu'un joueur.
+- `player.speedUnitsPerSecond`, `hitboxRadiusUnits`, `hitboxOffsetUnits`, `origin` et `rotationStep` règlent le mouvement et le corps du joueur.
+- `walls.thickness` règle l'épaisseur des murs extérieurs. `walls.internal` est la liste des murs intérieurs ; chaque entrée donne son centre (`x`, `y`) et ses dimensions (`width`, `height`) en unités. Par exemple, `{ x: -1, y: 0, width: 1, height: 1 }` place un mur carré d'une unité à gauche du centre.
+- `joystick` règle les dimensions, la marge, la zone morte et l'apparence du joystick tactile.
+- `home` règle les textes, les tailles de police, la position et les dimensions du bouton de l'écran d'accueil.
+
+Les murs intérieurs sont positionnés par leur centre. L'axe X positif va vers la droite, et l'axe Y positif vers le bas. Les dimensions et positions du joueur et des murs sont converties en pixels Phaser avec `unitPixels`.
 
 ## Phaser : les fonctions importantes
 
@@ -93,7 +114,16 @@ Phaser est le moteur de jeu JavaScript utilisé ici pour afficher le canvas, lir
 - `resolution: window.devicePixelRatio || 1` adapte la résolution du canvas à la densité de pixels de l'écran.
 - `autoRound: true` arrondit les valeurs de rendu pour éviter les positions fractionnaires à l'affichage.
 - `physics.default: 'arcade'` active Arcade Physics, le système de collisions 2D simple de Phaser.
-- `scene: [GameScene]` indique la scène lancée au démarrage.
+- `scene: [HomeScene, GameScene]` enregistre les scènes dans le jeu et lance d'abord `HomeScene`.
+
+### Écran d'accueil — `src/scenes/home_scene.js`
+
+- `HomeScene` hérite de `Phaser.Scene` et reçoit la clé `HomeScene`.
+- `create()` crée le titre, le sous-titre, le bouton et son texte.
+- `setInteractive()` permet au rectangle du bouton de recevoir les événements de pointeur, souris ou tactile.
+- `pointerover`, `pointerout` et `pointerdown` gèrent le survol, l'apparence du bouton et le démarrage de la partie.
+- `this.scene.start('GameScene')` arrête l'écran d'accueil et démarre la scène de jeu.
+- `layout()` centre les éléments ; l'événement `resize` la rappelle lorsque le canvas change de taille.
 
 ### Scène — `src/scenes/game_scene.js`
 
@@ -128,6 +158,13 @@ Autres appels Phaser utilisés dans la scène :
 - `scene.add.rectangle(x, y, width, height, color)` dessine le rectangle du mur.
 - `scene.physics.add.existing(rectangle, true)` ajoute un corps Arcade statique : il ne bouge pas sous l'effet de la physique et peut bloquer le joueur.
 
+### Joystick — `src/entities/virtual_joystick.js`
+
+- Le joystick n'est créé que si Phaser détecte un appareil tactile.
+- Une caméra HUD séparée garde le joystick à taille constante à l'écran malgré le zoom de la caméra du jeu.
+- Les événements `pointerdown`, `pointermove` et `pointerup` capturent et suivent le doigt. Le stick renvoie une direction normalisée `x`/`y` que le joueur ajoute à ses contrôles clavier.
+- `pointerupoutside` et l'événement de fermeture de la scène libèrent les entrées et les écouteurs.
+
 ## Évolutions prévues
 
-Les principales prochaines étapes de conception et de développement sont le multijoueur en salle, le système de vagues et de vies, les avertissements et collisions des piques, puis le joystick tactile. Le dash ou la poussée pourra être spécifié ensuite.
+Les principales prochaines étapes de conception et de développement sont le multijoueur en salle, le système de vagues et de vies, les avertissements et collisions des piques. Le dash ou la poussée pourra être spécifié ensuite.

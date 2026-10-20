@@ -1,5 +1,9 @@
 import Phaser from 'phaser';
 import GameScene from './scenes/game_scene.js';
+import HomeScene from './scenes/home_scene.js';
+import { GAME_CONFIG } from './config/game_config.js';
+
+document.documentElement.style.setProperty('--page-background', GAME_CONFIG.colors.background);
 
 const config = {
     type: Phaser.AUTO,
@@ -14,7 +18,12 @@ const config = {
     physics: {
         default: 'arcade'
     },
-    scene: [GameScene]
+    input: {
+        activePointers: 2,
+        touch: { capture: true }
+    },
+    backgroundColor: GAME_CONFIG.colors.background,
+    scene: [HomeScene, GameScene]
 };
 
 new Phaser.Game(config);
