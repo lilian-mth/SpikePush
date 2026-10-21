@@ -53,8 +53,7 @@ export default class VirtualJoystick {
     }
 
     handlePointerDown(pointer) {
-        const activeZone = this.scene.scale.width * GAME_CONFIG.joystick.activeZoneWidth;
-        if (this.pointerId !== null || pointer.x > activeZone) {
+        if (this.pointerId !== null) {
             return;
         }
 
@@ -100,7 +99,7 @@ export default class VirtualJoystick {
 
     setBasePosition(x, y) {
         const padding = this.baseRadius;
-        const maxX = Math.max(padding, this.scene.scale.width * GAME_CONFIG.joystick.activeZoneWidth);
+        const maxX = Math.max(padding, this.scene.scale.width - padding);
         const maxY = Math.max(padding, this.scene.scale.height - padding);
         const boundedX = Phaser.Math.Clamp(x, padding, maxX);
         const boundedY = Phaser.Math.Clamp(y, padding, maxY);

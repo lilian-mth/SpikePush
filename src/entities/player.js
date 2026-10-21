@@ -16,6 +16,7 @@ export default class Player {
         this.cursors = scene.input.keyboard.createCursorKeys();
         this.wasdKeys = scene.input.keyboard.addKeys('Z,Q,S,D');
         this.speed = GAME_CONFIG.player.speedUnitsPerSecond * GAME_CONFIG.unitPixels;
+        this.lives = GAME_CONFIG.player.lives;
     }
 
     update() {
@@ -41,5 +42,25 @@ export default class Player {
         }
 
         this.sprite.body.setVelocity(dx * this.speed, dy * this.speed);
+    }
+
+    takeDamage() {
+        if (this.lives === 0) {
+            return false;
+        }
+
+        this.lives -= 1;
+        return true;
+    }
+
+    respawn(x, y) {
+        const position = {
+            x: x * GAME_CONFIG.unitPixels,
+            y: y * GAME_CONFIG.unitPixels
+        };
+        this.sprite.setPosition(position.x, position.y);
+        this.sprite.body.reset(position.x, position.y);
+        this.sprite.body.setEnable(true);
+        this.sprite.setAlpha(1);
     }
 }

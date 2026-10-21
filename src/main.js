@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import GameScene from './scenes/game_scene.js';
+import GameOverScene from './scenes/game_over_scene.js';
 import HomeScene from './scenes/home_scene.js';
 import { GAME_CONFIG } from './config/game_config.js';
 
@@ -25,14 +26,23 @@ const config = {
     pixelArt: false,
     roundPixels: false,
     physics: {
-        default: 'arcade'
+        default: 'arcade',
+        arcade: {
+            debug: GAME_CONFIG.debug.enabled,
+            debugShowBody: GAME_CONFIG.debug.enabled,
+            debugShowStaticBody: GAME_CONFIG.debug.enabled,
+            debugShowVelocity: GAME_CONFIG.debug.enabled,
+            debugBodyColor: GAME_CONFIG.debug.bodyColor,
+            debugStaticBodyColor: GAME_CONFIG.debug.staticBodyColor,
+            debugVelocityColor: GAME_CONFIG.debug.velocityColor
+        }
     },
     input: {
         activePointers: 2,
         touch: { capture: true }
     },
     backgroundColor: GAME_CONFIG.colors.background,
-    scene: [HomeScene, GameScene]
+    scene: [HomeScene, GameScene, GameOverScene]
 };
 
 const game = new Phaser.Game(config);
