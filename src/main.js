@@ -9,7 +9,10 @@ document.documentElement.style.setProperty('--page-background', GAME_CONFIG.colo
 const MAX_PIXEL_RATIO = 2;
 const getGameResolution = () => {
     const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
-    return Math.ceil(Math.min(window.innerWidth, window.innerHeight) * pixelRatio);
+    return {
+        width: Math.ceil(window.innerWidth * pixelRatio),
+        height: Math.ceil(window.innerHeight * pixelRatio)
+    };
 };
 const initialResolution = getGameResolution();
 
@@ -19,8 +22,8 @@ const config = {
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: initialResolution,
-        height: initialResolution
+        width: initialResolution.width,
+        height: initialResolution.height
     },
     antialias: true,
     pixelArt: false,
@@ -47,8 +50,8 @@ const config = {
 
 const game = new Phaser.Game(config);
 window.addEventListener('resize', () => {
-    const resolution = getGameResolution();
-    if (game.scale.width !== resolution || game.scale.height !== resolution) {
-        game.scale.resize(resolution, resolution);
+    const { width, height } = getGameResolution();
+    if (game.scale.width !== width || game.scale.height !== height) {
+        game.scale.resize(width, height);
     }
 });

@@ -45,7 +45,7 @@ Les positions et dimensions Phaser sont exprimées en pixels du monde. Pour rais
 | 1 unité (U) | 250 pixels du monde |
 | Zone jouable | 4 × 4 U, soit 1 000 × 1 000 pixels |
 | Chaque mur | 1 U d'épaisseur |
-| Vue de la caméra | 6 × 6 U, soit 1 500 × 1 500 pixels |
+| Vue de référence de la caméra | 6 × 6 U, soit 1 500 × 1 500 pixels |
 | Diamètre du joueur | 0,45 U, soit 112,5 pixels du monde |
 | Vitesse du joueur | 500 pixels/s, soit 2 U/s |
 | Scie | 0,9 U de diamètre |
@@ -53,7 +53,7 @@ Les positions et dimensions Phaser sont exprimées en pixels du monde. Pour rais
 
 Les murs ont une longueur de 6 U sur leur côté extérieur. Ils se rejoignent aux coins afin de fermer complètement l'arène. Les coins font partie de l'épaisseur des murs, ils ne réduisent donc pas la zone intérieure de 4 × 4 U.
 
-La caméra prend la plus petite dimension de la fenêtre carrée et la divise par 1 500 pixels. Elle montre ainsi toujours le carré complet de 6 × 6 U. Le fond est crème (`#F4F1DE`) et les murs sont corail (`#E76F51`).
+Le canvas occupe tout l'écran et conserve le ratio de l'appareil. La caméra ajuste son zoom pour montrer l'arène complète de 6 × 6 U, avec davantage de fond visible sur le côté le plus large. Le fond est crème (`#F4F1DE`) et les murs sont corail (`#E76F51`).
 
 ### Taille de l'image du joueur
 
@@ -130,8 +130,8 @@ Phaser est le moteur de jeu JavaScript utilisé ici pour afficher le canvas, lir
 - `new Phaser.Game(config)` crée et démarre le jeu.
 - `type: Phaser.AUTO` laisse Phaser choisir le moteur de rendu disponible, WebGL ou Canvas.
 - `parent: 'game-container'` place le canvas dans l'élément HTML correspondant.
-- `Phaser.Scale.FIT` conserve la résolution interne haute définition et ajuste son affichage au conteneur carré.
-- La résolution interne est calculée depuis la taille de la fenêtre et la densité de pixels de l'écran, plafonnée à 2× pour préserver les performances. Elle est actualisée quand la fenêtre change de taille.
+- `Phaser.Scale.FIT` conserve la résolution interne haute définition et ajuste son affichage au conteneur plein écran, au ratio de l'appareil.
+- La résolution interne suit la largeur et la hauteur du viewport ainsi que la densité de pixels, plafonnée à 2× pour préserver les performances. Elle est actualisée quand la fenêtre change de taille.
 - `antialias: true`, `pixelArt: false` et `roundPixels: false` privilégient un rendu lissé, adapté aux illustrations non pixel art.
 - `physics.default: 'arcade'` active Arcade Physics, le système de collisions 2D simple de Phaser.
 - `scene: [HomeScene, GameScene, GameOverScene]` enregistre les scènes dans le jeu et lance d'abord `HomeScene`.
@@ -181,9 +181,9 @@ Autres appels Phaser utilisés dans la scène :
 ### Joystick — `src/entities/virtual_joystick.js`
 
 - Le joystick n'est créé que si Phaser détecte un appareil tactile.
-- Au toucher n'importe où sur l'écran, y compris en dehors du canvas, la base apparaît à la position touchée ou au bord le plus proche du canvas. Le joystick suit le doigt et se masque lorsqu'il est relâché.
+- Le canvas couvre tout le viewport : au toucher n'importe où sur l'écran, la base apparaît à la position touchée ou au bord le plus proche du canvas. Le joystick suit le doigt et se masque lorsqu'il est relâché.
 - Une caméra HUD séparée garde le joystick et l'interface à taille constante à l'écran malgré le zoom de la caméra du jeu.
-- Les événements pointeur capturés sur toute la fenêtre suivent le doigt, même en dehors du canvas. Le stick renvoie une direction normalisée `x`/`y` que le joueur ajoute à ses contrôles clavier.
+- Les événements pointeur capturés sur toute la fenêtre suivent le doigt. Le stick renvoie une direction normalisée `x`/`y` que le joueur ajoute à ses contrôles clavier.
 - `pointerup`, `pointercancel` et la fermeture de la scène libèrent le joystick et ses écouteurs.
 
 ### Scies et vagues — `src/entities/saw.js` et `src/scenes/game_scene.js`
