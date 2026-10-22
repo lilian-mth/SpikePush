@@ -5,6 +5,7 @@ html, body {
     height: 100%;
     overflow: hidden;
     background-color: var(--page-background, #F4F1DE);
+    touch-action: none;
 }
 
 body {

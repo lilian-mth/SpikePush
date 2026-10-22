@@ -6,6 +6,7 @@ export default class VirtualJoystick {
         this.scene = scene;
         this.hudCamera = hudCamera;
         this.pointerId = null;
+        this.canvas = scene.sys.game.canvas;
         this.x = 0;
         this.y = 0;
         this.visible = false;
@@ -13,6 +14,9 @@ export default class VirtualJoystick {
         this.baseRadius = GAME_CONFIG.joystick.baseRadius * this.pixelRatio;
         this.knobRadius = GAME_CONFIG.joystick.knobRadius * this.pixelRatio;
         this.maxDistance = this.baseRadius - this.knobRadius;
+        this.windowPointerDown = this.handlePointerDown.bind(this);
+        this.windowPointerMove = this.handlePointerMove.bind(this);
+        this.windowPointerUp = this.handlePointerUp.bind(this);
 
         this.base = scene.add.circle(
             0,
@@ -41,10 +45,10 @@ export default class VirtualJoystick {
 
         gameCamera.ignore([this.base, this.knob]);
         hudCamera.ignore(worldObjects);
-        scene.input.on('pointerdown', this.handlePointerDown, this);
-        scene.input.on('pointermove', this.handlePointerMove, this);
-        scene.input.on('pointerup', this.handlePointerUp, this);
-        scene.input.on('pointerupoutside', this.handlePointerUp, this);
+        window.addEventListener('pointerdown', this.windowPointerDown, { passive: false });
+        window.addEventListener('pointermove', this.windowPointerMove);
+        window.addEventListener('pointerup', this.windowPointerUp);
+        window.addEventListener('pointercancel', this.windowPointerUp);
         scene.scale.on('resize', this.reposition, this);
         scene.scale.on('resize', this.resizeCamera, this);
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this);
@@ -57,20 +61,24 @@ export default class VirtualJoystick {
             return;
         }
 
-        this.pointerId = pointer.id;
+        this.pointerId = pointer.pointerId;
         this.setVisible(true);
-        this.setBasePosition(pointer.x, pointer.y);
-        this.moveKnob(pointer);
+        const position = this.getGamePosition(pointer);
+        this.setBasePosition(position.x, position.y);
+        this.moveKnob(position);
+        if (pointer.cancelable) {
+            pointer.preventDefault();
+        }
     }
 
     handlePointerMove(pointer) {
-        if (pointer.id === this.pointerId) {
-            this.moveKnob(pointer);
+        if (pointer.pointerId === this.pointerId) {
+            this.moveKnob(this.getGamePosition(pointer));
         }
     }
 
     handlePointerUp(pointer) {
-        if (pointer.id === this.pointerId) {
+        if (pointer.pointerId === this.pointerId) {
             this.pointerId = null;
             this.x = 0;
             this.y = 0;
@@ -78,9 +86,20 @@ export default class VirtualJoystick {
         }
     }
 
-    moveKnob(pointer) {
-        const deltaX = pointer.x - this.base.x;
-        const deltaY = pointer.y - this.base.y;
+    getGamePosition(pointer) {
+        const bounds = this.canvas.getBoundingClientRect();
+        const scaleX = this.scene.scale.width / bounds.width;
+        const scaleY = this.scene.scale.height / bounds.height;
+
+        return {
+            x: (pointer.clientX - bounds.left) * scaleX,
+            y: (pointer.clientY - bounds.top) * scaleY
+        };
+    }
+
+    moveKnob(position) {
+        const deltaX = position.x - this.base.x;
+        const deltaY = position.y - this.base.y;
         const distance = Math.min(Math.hypot(deltaX, deltaY), this.maxDistance);
         const angle = Math.atan2(deltaY, deltaX);
 
@@ -136,10 +155,10 @@ export default class VirtualJoystick {
     }
 
     destroy() {
-        this.scene.input.off('pointerdown', this.handlePointerDown, this);
-        this.scene.input.off('pointermove', this.handlePointerMove, this);
-        this.scene.input.off('pointerup', this.handlePointerUp, this);
-        this.scene.input.off('pointerupoutside', this.handlePointerUp, this);
+        window.removeEventListener('pointerdown', this.windowPointerDown);
+        window.removeEventListener('pointermove', this.windowPointerMove);
+        window.removeEventListener('pointerup', this.windowPointerUp);
+        window.removeEventListener('pointercancel', this.windowPointerUp);
         this.scene.scale.off('resize', this.reposition, this);
         this.scene.scale.off('resize', this.resizeCamera, this);
     }

@@ -181,10 +181,10 @@ Autres appels Phaser utilisés dans la scène :
 ### Joystick — `src/entities/virtual_joystick.js`
 
 - Le joystick n'est créé que si Phaser détecte un appareil tactile.
-- Au toucher n'importe où sur l'écran de jeu, la base apparaît à cet emplacement et le joystick suit le doigt. Il se masque lorsque le doigt est relâché.
+- Au toucher n'importe où sur l'écran, y compris en dehors du canvas, la base apparaît à la position touchée ou au bord le plus proche du canvas. Le joystick suit le doigt et se masque lorsqu'il est relâché.
 - Une caméra HUD séparée garde le joystick et l'interface à taille constante à l'écran malgré le zoom de la caméra du jeu.
-- Les événements `pointerdown`, `pointermove` et `pointerup` capturent et suivent le doigt. Le stick renvoie une direction normalisée `x`/`y` que le joueur ajoute à ses contrôles clavier.
-- `pointerupoutside` et l'événement de fermeture de la scène libèrent les entrées et les écouteurs.
+- Les événements pointeur capturés sur toute la fenêtre suivent le doigt, même en dehors du canvas. Le stick renvoie une direction normalisée `x`/`y` que le joueur ajoute à ses contrôles clavier.
+- `pointerup`, `pointercancel` et la fermeture de la scène libèrent le joystick et ses écouteurs.
 
 ### Scies et vagues — `src/entities/saw.js` et `src/scenes/game_scene.js`
 
