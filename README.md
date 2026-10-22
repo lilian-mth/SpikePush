@@ -114,7 +114,7 @@ Les réglages de gameplay et de présentation sont regroupés dans `src/config/g
 - `saw.animationAssets` contient les trois images successives de l'animation ; `animationFrameDurationMs` règle la durée de chaque image. `diameterUnits` règle la taille des scies et de leur hitbox ; `countPerSide` règle le nombre de scies visibles sur chaque côté.
 - `waves.warningDistanceUnits` règle la courte sortie inoffensive avant la vague. Les autres paramètres `waves.warning...` définissent sa durée et son évolution. `speedUnitsPerSecond`, `speedIncreasePerWave` et `maximumSpeedUnitsPerSecond` règlent l'accélération ; `betweenWavesMs` définit la pause.
 - `ui.hud` et `ui.gameOver` regroupent les textes et dimensions de l'interface, sans les mélanger aux paramètres des scies ou du joueur.
-- `saw.depth` règle la profondeur de dessin des scies ; la valeur par défaut les place au-dessus des murs.
+- `saw.depth` règle la profondeur de dessin des scies ; la valeur par défaut les place sous les murs.
 - `debug.enabled` active le rendu des corps Arcade Physics pour visualiser les hitboxes. Les couleurs des corps mobiles, des murs statiques et des vecteurs de vitesse se règlent avec `debug.bodyColor`, `debug.staticBodyColor` et `debug.velocityColor`.
 - `joystick` règle la taille, la zone morte et l'apparence grise du joystick tactile. Le joystick peut apparaître à n'importe quel endroit du canvas.
 - `home` règle les textes, les tailles de police, la position et les dimensions du bouton de l'écran d'accueil.

@@ -46,9 +46,9 @@ export const GAME_CONFIG = {
             'assets/saw2.png',
             'assets/saw3.png'
         ],
-        animationFrameDurationMs: 20,
+        animationFrameDurationMs: 40,
         diameterUnits: 0.9,
-        depth: 1,
+        depth: -1,
         countPerSide: 4
     },
     waves: {
