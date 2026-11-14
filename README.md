@@ -1,17 +1,19 @@
 # SpikePush
 
-SpikePush est un jeu d'arène multijoueur en vue de dessus, conçu pour navigateur. Le concept est une partie de survie : plusieurs joueurs partagent une petite salle, esquivent des scies qui surgissent des murs et tentent de rester le dernier survivant.
+SpikePush est un jeu d'arène en vue de dessus, conçu pour navigateur. Le concept est une partie de survie : les joueurs esquivent des rondins qui traversent l'arène et des murs intérieurs mobiles.
 
-> **État du projet :** le prototype local comprend le menu, l'arène, un joueur, 16 scies visibles autour de la bordure, des vagues et trois vies. Le multijoueur reste à développer.
+> **État du projet :** le prototype local comprend le menu, l'arène, un joueur, des rondins, des vagues WallShift et trois vies. Le multijoueur reste à développer.
 
 ## Concept et règles prévues
 
 - Une salle accueille plusieurs joueurs, par exemple quatre.
 - Chaque joueur commence avec trois vies.
-- Les quatre scies du côté choisi sortent légèrement du mur pour signaler une vague ; cette phase ne cause pas de dégâts.
-- Elles tournent et avancent jusqu'à leur position d'arrêt calculée avant un obstacle. Une fois toutes arrêtées, elles reviennent ensemble à leur position d'attente sur la bordure.
-- Le contact avec une scie en mouvement retire une vie. Le joueur réapparaît après le retour des scies.
-- Pendant leur déplacement, les scies alternent entre trois images. Les vagues deviennent progressivement plus difficiles : elles accélèrent et le délai d'avertissement raccourcit.
+- Un seul côté complet est attaqué à la fois : les quatre pointes du côté sélectionné traversent l'arène depuis le nord, le sud, l'est ou l'ouest.
+- Les bandes de bordure sont jaunes au repos ; celle du côté attaqué clignote en rouge pendant l'avertissement. Lors d'une vague WallShift, les quatre bandes clignotent.
+- Les rondins avancent à vitesse constante et s'arrêtent devant les murs intérieurs, sans écraser les cases protégées derrière ces murs. Après une courte pause, ils repartent vers leur bord d'origine.
+- Seize pointes restent à leur taille normale à l'extérieur de l'arène ; les quatre pointes du côté choisi sont celles qui se déplacent, sans doublon. Les limites invisibles empêchent le joueur de sortir.
+- Si `firstHitConsumesWave` est activé, le premier rondin qui touche un joueur lui retire une vie et désactive les dégâts des rondins. La vague continue jusqu'au retour de tous les rondins.
+- Toutes les `wallShiftEveryNWaves` vagues, un mur intérieur se déplace en ligne droite vers une case libre ; la translation garde une durée fixe.
 - Le dernier joueur encore en vie remporte la partie.
 - Le prototype dispose d'un joystick virtuel sur les appareils tactiles. Les commandes clavier restent disponibles sur ordinateur.
 - Une capacité de dash ou de poussée est envisagée, mais ses règles restent à définir.
@@ -21,18 +23,19 @@ Le prototype gère déjà les vagues, les avertissements et les vies pour un jou
 ## Prototype actuel
 
 - Une arène carrée de **4 × 4 unités**.
-- Quatre murs corail solides d'**1 unité d'épaisseur**, autour de l'arène.
-- Une caméra centrée qui cadre **6 × 6 unités**, murs compris.
+- Des limites invisibles empêchent de sortir de l'arène ; les bandes d'alerte et les pointes forment son contour visuel.
+- Une caméra centrée qui cadre l'arène et les pointes en attente.
 - Un joueur dans la case en bas à gauche, contrôlable au clavier avec les **flèches** ou **ZQSD**.
 - Un joystick virtuel tactile dynamique, qui apparaît sous le doigt partout sur l'écran de jeu.
 - Un écran d'accueil avec un bouton **JOUER** pour lancer la partie.
 - Deux murs intérieurs solides de **1 × 1 unité**.
-- 16 scies assemblées, quatre visibles de chaque côté de l'arène.
-- Des vagues où les quatre scies d'un côté aléatoire sortent brièvement du mur avant de charger.
-- Trois vies et un écran d'élimination avec un retour au menu.
-- Après avoir perdu une vie, le joueur réapparaît dans une case libre après la rétractation des scies.
+- Quatre rondins massifs par attaque, un par voie, depuis un seul côté à la fois.
+- Des avertissements lumineux jaunes au bord de l'arène, qui clignotent en rouge avant chaque vague.
+- Des vagues WallShift périodiques où un mur intérieur se déplace vers une case libre alignée.
+- Trois vies et un écran de fin affiché après la vague où la dernière vie est perdue, avec un retour au menu.
+- Après un impact de rondin, le joueur reste immobilisé jusqu'à la fin de la vague et reprend au même endroit si des vies lui restent. Après un écrasement par WallShift, il réapparaît sur une case libre une fois le mur arrivé.
 - Déplacement diagonal normalisé pour conserver la même vitesse dans toutes les directions.
-- Le navigateur et l'interface sont affichés dans un cadre carré aussi grand que possible.
+- Le jeu occupe toute la fenêtre et la caméra s'adapte au ratio de l'écran.
 
 Le multijoueur et la condition de victoire « dernier survivant » ne sont pas encore implémentés.
 
@@ -47,9 +50,8 @@ Les positions et dimensions Phaser sont exprimées en pixels du monde. Pour rais
 | Chaque mur | 1 U d'épaisseur |
 | Vue de référence de la caméra | 6 × 6 U, soit 1 500 × 1 500 pixels |
 | Diamètre du joueur | 0,45 U, soit 112,5 pixels du monde |
-| Vitesse du joueur | 500 pixels/s, soit 2 U/s |
-| Scie | 0,9 U de diamètre |
-| Couloir d'une vague | 4 scies espacées d'1 U |
+| Vitesse du joueur | 625 pixels/s, soit 2,5 U/s |
+| Rondin | 1 U de large et au moins 5 U de long |
 
 Les murs ont une longueur de 6 U sur leur côté extérieur. Ils se rejoignent aux coins afin de fermer complètement l'arène. Les coins font partie de l'épaisseur des murs, ils ne réduisent donc pas la zone intérieure de 4 × 4 U.
 
@@ -92,12 +94,12 @@ src/scenes/game_scene.js    Arène, collisions, vagues et caméra
 src/scenes/game_over_scene.js Écran de fin en surimpression et boutons
 src/entities/game_hud.js     Affichage des vies
 src/entities/player.js      Cercle du joueur, hitbox, contrôles et vitesse
-src/entities/wall.js        Création d'un mur solide
-src/entities/saw.js         Scie, mouvement, animation par images et hitbox
+src/entities/wall.js        Mur solide et mise à jour de sa hitbox
+src/entities/log_trap.js    Rondin de voie, déplacement et collision
+src/entities/border_warning.js Alerte lumineuse des bordures
+src/entities/wall_shift.js  Déplacement aligné d'un mur intérieur
 src/entities/virtual_joystick.js Joystick tactile et entrée directionnelle
-public/assets/saw1.png      Première image de l'animation de scie
-public/assets/saw2.png      Deuxième image de l'animation de scie
-public/assets/saw3.png      Troisième image de l'animation de scie
+public/assets/spike.png    Sprite horizontal du rondin
 public/assets/player.png    Ancienne image du joueur (le prototype utilise un cercle vectoriel)
 ```
 
@@ -105,16 +107,18 @@ public/assets/player.png    Ancienne image du joueur (le prototype utilise un ce
 
 Les réglages de gameplay et de présentation sont regroupés dans `src/config/game_config.js`, dans l'objet `GAME_CONFIG` :
 
-- `unitPixels`, `arena` et `camera` règlent l'échelle, la taille de l'arène et le cadrage.
-- `colors` regroupe le fond, les murs, le menu et le joystick.
+- `unitPixels`, `gridSize` et `camera` règlent l'échelle, la taille de la grille et le cadrage.
+- `colors` regroupe le fond, les murs, le menu et le joystick ; `warningLights` configure les couleurs et le clignotement des alertes.
 - `player.startPositions` contient les positions de départ en unités, relatives au centre de l'arène. Pour l'instant, seul le premier départ est utilisé puisque le prototype n'a qu'un joueur. La position `(-1.5, 1.5)` correspond au centre de la case en bas à gauche d'une arène de 4 × 4 U.
 - `player.diameterUnits`, `speedUnitsPerSecond` et `lives` règlent la taille, le mouvement et le nombre de vies du joueur. La hitbox circulaire est alignée sur le diamètre visible.
-- `player.respawnSafeMarginUnits` règle la marge supplémentaire utilisée pour calculer les cases sûres de réapparition. Ces cases sont calculées au démarrage en tenant compte des murs.
-- `walls.thickness` règle l'épaisseur des murs extérieurs. `walls.internal` contient les coordonnées `column` et `row` des cases occupées par les obstacles intérieurs. Chaque obstacle occupe une case de 1 × 1 U ; colonnes et lignes commencent à 0 en haut à gauche.
-- `saw.animationAssets` contient les trois images successives de l'animation ; `animationFrameDurationMs` règle la durée de chaque image. `diameterUnits` règle la taille des scies et de leur hitbox ; `countPerSide` règle le nombre de scies visibles sur chaque côté.
-- `waves.warningDistanceUnits` règle la courte sortie inoffensive avant la vague. Les autres paramètres `waves.warning...` définissent sa durée et son évolution. `speedUnitsPerSecond`, `speedIncreasePerWave` et `maximumSpeedUnitsPerSecond` règlent l'accélération ; `betweenWavesMs` définit la pause.
-- `ui.hud` et `ui.gameOver` regroupent les textes et dimensions de l'interface, sans les mélanger aux paramètres des scies ou du joueur.
-- `saw.depth` règle la profondeur de dessin des scies ; la valeur par défaut les place sous les murs.
+- `walls.thickness` règle l'épaisseur des murs extérieurs. `walls.internal` contient les cases initiales des murs intérieurs, déplaçables par WallShift.
+- `warningDuration` est la durée d'alerte en secondes ; `warningLights` règle les couleurs jaune au repos et rouge à l'alerte, l'épaisseur des bandes et le rythme de clignotement.
+- Les 16 pointes utilisent la configuration `spike` : elles mesurent 6 × 0,8 U. Les pointes d'attaque se déplacent rapidement ; leur zone de dégâts est limitée à leur extrémité (0,4 × 0,8 U), et leur vitesse de rétraction est réglée séparément, plus lentement.
+- Chaque pointe possède une box solide sur toute sa longueur, séparée du capteur de dégâts à l'extrémité : le joueur est bloqué par la pointe sans subir de dégâts au contact de son corps.
+- `spike.attackSpeedUnitsPerSecond`, `spike.retractSpeedUnitsPerSecond`, `spike.depth`, `player.depth` et `warningLights.depth` règlent les vitesses d'attaque/rétraction et l'ordre d'affichage. Le warning est dessiné sous les pointes, et le joueur au-dessus.
+- `wallMoveDuration` est la durée fixe de déplacement d'un mur, en secondes. `waves.wallShiftEveryNWaves` règle la fréquence des vagues WallShift, `waves.targetPauseMs` la pause des pointes à leur point d'arrêt et `waves.betweenWavesMs` la pause entre les vagues.
+- `firstHitConsumesWave` désactive les dégâts des rondins après le premier impact. Les rondins terminent leur course, attendent puis se rétractent normalement.
+- `ui.hud` et `ui.gameOver` regroupent les textes et dimensions de l'interface, indépendamment des paramètres des pièges ou du joueur.
 - `debug.enabled` active le rendu des corps Arcade Physics pour visualiser les hitboxes. Les couleurs des corps mobiles, des murs statiques et des vecteurs de vitesse se règlent avec `debug.bodyColor`, `debug.staticBodyColor` et `debug.velocityColor`.
 - `joystick` règle la taille, la zone morte et l'apparence grise du joystick tactile. Le joystick peut apparaître à n'importe quel endroit du canvas.
 - `home` règle les textes, les tailles de police, la position et les dimensions du bouton de l'écran d'accueil.
@@ -149,10 +153,8 @@ Phaser est le moteur de jeu JavaScript utilisé ici pour afficher le canvas, lir
 
 Une scène Phaser organise une partie ou un écran du jeu. Phaser appelle ses méthodes dans cet ordre :
 
-1. `preload()` charge les trois images d'animation des scies.
-2. `create()` s'exécute une fois pour construire le monde : limites physiques, joueur, murs, collisions, HUD et caméra.
-3. `update()` s'exécute à chaque image affichée et actualise le joueur et les scies.
-4. L'événement `postupdate` synchronise l'illustration mobile de chaque scie sur son corps physique après le déplacement.
+1. `create()` construit le monde : limites physiques, joueur, murs, collisions, HUD, alertes et caméra.
+2. `update()` actualise le joueur et les rondins en mouvement.
 - Quand le joueur n'a plus de vies, `GameScene` se met en pause et lance `GameOverScene` au-dessus d'elle.
 
 Autres appels Phaser utilisés dans la scène :
@@ -171,7 +173,7 @@ Autres appels Phaser utilisés dans la scène :
 - `createCursorKeys()` lit les flèches ; `addKeys('Z,Q,S,D')` lit les touches ZQSD.
 - `body.setVelocity(x, y)` applique la vitesse du joueur en pixels par seconde.
 - La norme du vecteur de déplacement limite sa longueur à 1, pour conserver la même vitesse dans toutes les directions.
-- `takeDamage()` retire une vie au contact d'une scie ; le corps du joueur est désactivé le temps de sa réapparition pour empêcher plusieurs dégâts sur le même contact.
+- `takeDamage()` retire une vie au contact d'un rondin ou d'un mur en translation ; le corps du joueur est désactivé pendant le reste de la vague.
 
 ### Murs — `src/entities/wall.js`
 
@@ -186,15 +188,20 @@ Autres appels Phaser utilisés dans la scène :
 - Les événements pointeur capturés sur toute la fenêtre suivent le doigt. Le stick renvoie une direction normalisée `x`/`y` que le joueur ajoute à ses contrôles clavier.
 - `pointerup`, `pointercancel` et la fermeture de la scène libèrent le joystick et ses écouteurs.
 
-### Scies et vagues — `src/entities/saw.js` et `src/scenes/game_scene.js`
+### Rondins et alertes — `src/entities/log_trap.js` et `src/entities/border_warning.js`
 
-- La classe `Saw` crée 16 scies autour de l'arène. Chaque scie alterne en permanence entre les trois images configurées, y compris à l'arrêt et pendant l'avertissement, sans rotation de sprite.
-- Une hitbox circulaire invisible suit chaque scie. `physics.add.overlap()` détecte le contact sans résoudre physiquement la collision : le joueur ne pousse pas les scies et elles ne bloquent pas son déplacement.
-- Chaque trajectoire calcule sa position d'arrêt à partir des murs de sa voie. Si un mur intérieur est directement contre le mur de sortie, la scie s'arrête à son point de départ au lieu de traverser l'obstacle.
-- Le cycle d'une vague est : sortie légère sans dégâts, déplacement tournant, arrêt des quatre scies, retour synchronisé à la bordure, réapparition du joueur si nécessaire, puis pause avant la prochaine vague.
-- La vague choisit un côté au hasard. La vitesse augmente et la durée d'avertissement diminue à chaque nouvelle vague, selon les plafonds et minima de configuration.
-- Les scies sont dessinées au-dessus des murs extérieurs pour rester visibles en attente.
-- Les positions de réapparition sont calculées une fois à partir des cases libres et des murs. Le joueur revient après que les scies actives ont regagné leur position d'attente.
+- Une vague normale choisit un seul côté et déplace les quatre pointes de ce côté. Chaque pointe mesure 6 × 0,8 U et traverse la grille jusqu'à ce que son avant atteigne le bord opposé.
+- La trajectoire de chaque rondin est calculée selon sa voie ; le premier mur intérieur dans le sens d'entrée bloque le rondin et protège les cases situées derrière.
+- `BorderWarning` affiche quatre bandes de 0,25 case au niveau du bord ; elles sont jaunes au repos et la bande choisie clignote en rouge pendant `warningDuration`. Il gère ses propres tween et timer.
+- `SpikeIndicators` affiche les 16 pointes disponibles des quatre côtés et fournit leurs sprites aux attaques, sans créer de doublons. Une box solide couvre chaque pointe ; un capteur distinct de 0,4 × 0,8 U à l'extrémité déclenche les dégâts. Après le premier impact d'une vague, les dégâts sont désactivés, mais les pointes terminent leur course, attendent puis se rétractent plus lentement.
+- Après le déplacement, les rondins attendent `targetPauseMs`, repartent vers leur bord d'origine, puis la vague suivante démarre après `betweenWavesMs`.
+- Quand `firstHitConsumesWave` est activé, le premier contact coûte une vie et désactive les collisions de dégâts des rondins ; ils finissent leur course, marquent la pause puis se rétractent normalement.
+
+### WallShift — `src/entities/wall_shift.js`
+
+- Toutes les `waves.wallShiftEveryNWaves` vagues, un mur intérieur est choisi et déplacé vers une case libre de sa ligne ou de sa colonne ; les quatre bandes de warning clignotent pendant l'annonce.
+- Le déplacement est linéaire et dure toujours `wallMoveDuration`, quelle que soit sa distance. Le corps physique statique du mur suit le tween pour conserver les collisions avec le joueur.
+- Le mur pousse le joueur avec sa collision physique. Il ne perd une vie que s'il est comprimé contre un autre mur ou le bord de l'arène ; après l'arrivée du mur, il réapparaît sur une case libre.
 
 ### Interface — `src/entities/game_hud.js` et `src/scenes/game_over_scene.js`
 
